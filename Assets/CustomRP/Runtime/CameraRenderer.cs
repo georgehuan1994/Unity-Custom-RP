@@ -1,0 +1,134 @@
+using UnityEngine;
+using UnityEngine.Rendering;
+
+public partial class CameraRenderer
+{
+    private ScriptableRenderContext _context;
+
+    private Camera _camera;
+    
+    private const string BufferName = "Render Camera";
+
+    private CommandBuffer _cb = new CommandBuffer
+    {
+        name = BufferName
+    };
+    
+#if UNITY_EDITOR
+    private string SampleName { get; set; }
+#else
+    private const string SampleName = BufferName;
+#endif
+
+    private CullingResults _cullingResults;
+
+    private static ShaderTagId _unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
+    
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
+    {
+        _context = context;
+        _camera = camera;
+
+        PrepareBuffer();
+        PrepareForSceneWindow();
+        
+        if (!Cull()) return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
+
+        Setup();
+        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
+#if UNITY_EDITOR
+        DrawUnSupportShaders();
+        DrawGizmo();
+#endif
+        Submit();
+    }
+
+    /// <summary>
+    /// 剔除
+    /// </summary>
+    /// <returns>剔除是否成功</returns>
+    private bool Cull()
+    {
+        if (_camera.TryGetCullingParameters(out ScriptableCullingParameters p))
+        {
+            _cullingResults = _context.Cull(ref p);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 设置渲染相关配置
+    /// </summary>
+    private void Setup()
+    {
+        // 通过 SetupCameraProperties 方法将相机参数 (render target，view/projection matrices，per-camera built-in shader variables) 传递给 context
+        _context.SetupCameraProperties(_camera);
+
+        // 获取相机的 clearFlags
+        CameraClearFlags flags = _camera.clearFlags;
+        
+        // 向 command buffer 写入 清理指令
+        // 向 command buffer 写入 采样指令
+        _cb.ClearRenderTarget(
+            flags <= CameraClearFlags.Depth,
+            flags == CameraClearFlags.Color,
+            flags == CameraClearFlags.Color ? _camera.backgroundColor.linear : Color.clear); // _cb.ClearRenderTarget(true, true, Color.clear);
+        _cb.BeginSample(SampleName);
+        ExecuteBuffer();
+    }
+    
+    /// <summary>
+    /// 绘制可见几何体
+    /// </summary>
+    /// <param name="useDynamicBatching">是否使用动态批处理</param>
+    /// <param name="useGPUInstancing">是否使用 GPU 实例化</param>
+    private void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing)
+    {
+        // 渲染排序设置：不透明物体排序，与摄像机的距离从近到远
+        var sortingSettings = new SortingSettings(_camera) {criteria = SortingCriteria.CommonOpaque};
+        var drawingSettings = new DrawingSettings(_unlitShaderTagId, sortingSettings)
+        {
+            enableDynamicBatching = useDynamicBatching,
+            enableInstancing = useGPUInstancing
+        };
+        
+        // 仅渲染不透明队列
+        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+        
+        // 使用剔除结果作为参数，调用上下文的 DrawRenderers 方法
+        _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
+        
+        // 绘制天空盒
+        _context.DrawSkybox(_camera);
+        
+        // 渲染排序设置：透明物体排序，与摄像机的距离从远到近
+        sortingSettings.criteria = SortingCriteria.CommonTransparent;
+        drawingSettings.sortingSettings = sortingSettings;
+        
+        // 仅渲染透明队列
+        filteringSettings.renderQueueRange = RenderQueueRange.transparent;
+        
+        _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
+    }
+    
+    /// <summary>
+    /// 向图形 API 提交上下文，执行预定的命令
+    /// </summary>
+    private void Submit()
+    {
+        _cb.EndSample(SampleName);  // 向 command buffer 写入 profiler 结束采样指令
+        ExecuteBuffer();
+        _context.Submit();
+    }
+
+    /// <summary>
+    /// 注册命令到上下文并清理缓冲区
+    /// </summary>
+    private void ExecuteBuffer()
+    {
+        _context.ExecuteCommandBuffer(_cb);
+        _cb.Clear();
+    }
+}
