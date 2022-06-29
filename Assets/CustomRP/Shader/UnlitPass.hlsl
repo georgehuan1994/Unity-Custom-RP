@@ -6,7 +6,7 @@
 #include "../ShaderLibrary/Common.hlsl"
 
 TEXTURE2D(_BaseMap);        // 基础纹理
-SAMPLER(sampler_BaseMap);   // 采样器
+SAMPLER(sampler_BaseMap);   // 采样器，这两个变量不能逐实例提供，应放在全局域中
 
 // 将属性放入常量缓冲区，并定义名为 "UnityPerMaterial" 的 buffer，优先使用 SRP Batch，然后是 GPU 实例
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
@@ -26,7 +26,7 @@ struct Attributes
 struct Varyings
 {
     float4 positionCS : SV_POSITION;
-    float2 baseUV : VAR_BASE_UV;
+    float2 baseUV : VAR_BASE_UV;    // VAR_BASE_UV 未使用标识
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输出结构中
 };
 

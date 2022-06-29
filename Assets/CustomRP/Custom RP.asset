@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useDynamicBatching: 1
   useGPUInstancing: 1
-  useSRPBatcher: 1
+  useSRPBatcher: 0
