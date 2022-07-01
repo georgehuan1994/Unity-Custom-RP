@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Serialization;
 
+[ExecuteAlways]
 public class InstancedIndirectGrassRenderer : MonoBehaviour
 {
     public static InstancedIndirectGrassRenderer Instance;
@@ -102,13 +103,13 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
             Vector3 target = allGrassPos[i];
             _minX = Mathf.Min(target.x, _minX);
             _minZ = Mathf.Min(target.z, _minZ);
-            _maxX = Mathf.Min(target.x, _maxX);
-            _maxZ = Mathf.Min(target.z, _maxZ);
+            _maxX = Mathf.Max(target.x, _maxX);
+            _maxZ = Mathf.Max(target.z, _maxZ);
         }
 
         _cellCountX = Mathf.CeilToInt((_maxX - _minX) / _cellSizeX);
         _cellCountZ = Mathf.CeilToInt((_maxZ - _minZ) / _cellSizeZ);
-        
+
         _cellPosWSsList = new List<Vector3>[_cellCountX * _cellCountZ];
         for (int i = 0; i < _cellPosWSsList.Length; i++)
         {
@@ -119,6 +120,7 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
         {
             Vector3 pos = allGrassPos[i];
 
+            // 0 ~ [cellCount-1]
             int xID = Mathf.Min(_cellCountX - 1, Mathf.FloorToInt(Mathf.InverseLerp(_minX, _maxX, pos.x) * _cellCountX));
             int zID = Mathf.Min(_cellCountZ - 1, Mathf.FloorToInt(Mathf.InverseLerp(_minZ, _maxZ, pos.z) * _cellCountZ));
             

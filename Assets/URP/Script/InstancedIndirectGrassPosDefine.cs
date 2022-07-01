@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteAlways]
 public class InstancedIndirectGrassPosDefine : MonoBehaviour
 {
     [Range(1, 40000000)] public int instanceCount = 1000000;
