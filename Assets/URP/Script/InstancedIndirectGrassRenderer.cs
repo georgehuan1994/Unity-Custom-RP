@@ -10,14 +10,16 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
     public static InstancedIndirectGrassRenderer Instance;
     
     [Header("Settings")]
-    public float drawDistance = 150;            // 绘制距离，从摄像机近裁剪平面开始
+    public float drawDistance = 150;            // 绘制距离，从摄像机的坐标开始
     public Material instanceMaterial;           // 材质实例
     
     [Header("Internal")]
     public ComputeShader cullingComputeShader;  // 剔除算法
 
     [NonSerialized]
-    public List<Vector3> allGrassPos = new List<Vector3>();
+    public List<Vector3> allGrassPos = new List<Vector3>(); // 每根草的位置
+
+    public int boundSize = -1;                  // 边界尺寸
     
     private float _cellSizeX = 10;
     private float _cellSizeZ = 10;              // 分为 10 * 10 个绘制区域，单位：米
@@ -25,17 +27,18 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
     private int _cellCountX = -1;
     private int _cellCountZ = -1;               // 每个绘制区域中草的数量 (自适应)
     
-    private int _dispatchCount = -1;
+    private int _dispatchCount = -1;            // Compute Shader 内核线程数
     
-    private int _instanceCountCache = -1;       // 当前实例数量
-    private Mesh _cacheGrassMesh;               // 当前实例所用材质
+    private int _cacheInstanceCount = -1;       // 当前实例数量
+    private Mesh _cacheGrassMesh;               // 当前实例网格
+    private int _cacheBoundSize = -1;           // 当前边界尺寸
 
-    private ComputeBuffer _allInstancesPosWSBuffer;             // 每实例位置缓存
-    private ComputeBuffer _visibleInstancesOnlyPosWSIDBuffer;   // 每实例ID缓存
-    private ComputeBuffer _argsBuffer;                          // 每实例参数缓存
+    private ComputeBuffer _allInstancesPosWSBuffer;             // 储存每根草的位置
+    private ComputeBuffer _visibleInstancesOnlyPosWSIDBuffer;   // 储存每根草的实例ID
+    private ComputeBuffer _argsBuffer;                          // 存储每根草的其他参数
 
-    private List<Vector3>[] _cellPosWSsList;    // 每个绘制区域的草的坐标
-    private float _minX, _minZ, _maxX, _maxZ;
+    private List<Vector3>[] _cellPosWSsList;    // 绘制区域列表，每个列表中储存的草的坐标
+    private float _minX, _minZ, _maxX, _maxZ;   // 草在世界空间中的位置限制
     
     private List<int> _visibleCellIDList = new List<int>();     // 每个绘制区域的ID
     
@@ -72,11 +75,13 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
     /// </summary>
     private void UpdateAllInstanceTransformBufferIfNeeded()
     {
+        // 设置材质属性
         instanceMaterial.SetVector("_PivotPosWS", transform.position);
         instanceMaterial.SetVector("_BoundSize", new Vector2(transform.localScale.x, transform.localScale.z));
 
         // 如果实例已绘制完毕，则无需更新
-        if (_instanceCountCache == allGrassPos.Count &&
+        if (_cacheBoundSize == boundSize &&
+            _cacheInstanceCount == allGrassPos.Count &&
             _argsBuffer != null &&
             _allInstancesPosWSBuffer != null &&
             _visibleInstancesOnlyPosWSIDBuffer != null)
@@ -97,7 +102,7 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
         _maxX = float.MinValue;
         _maxZ = float.MinValue;
 
-        // 限制草的位置
+        // 获取草的位置范围，allGrassPos 在 InstancedIndirectGrassPosDefine.UpdatePosAndSizeIfNeeded() 中赋值
         for (int i = 0; i < allGrassPos.Count; i++)
         {
             Vector3 target = allGrassPos[i];
@@ -107,26 +112,30 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
             _maxZ = Mathf.Max(target.z, _maxZ);
         }
 
+        // 获取每个绘制区域的尺寸
         _cellCountX = Mathf.CeilToInt((_maxX - _minX) / _cellSizeX);
         _cellCountZ = Mathf.CeilToInt((_maxZ - _minZ) / _cellSizeZ);
 
+        // 划分区域
         _cellPosWSsList = new List<Vector3>[_cellCountX * _cellCountZ];
         for (int i = 0; i < _cellPosWSsList.Length; i++)
         {
             _cellPosWSsList[i] = new List<Vector3>();
         }
 
+        // 遍历每根草，将草的坐标填充到各个绘制区域中
         for (int i = 0; i < allGrassPos.Count; i++)
         {
             Vector3 pos = allGrassPos[i];
 
-            // 0 ~ [cellCount-1]
+            // 反插值，[0 ~ (cellCount-1)]，转换为列表的索引
             int xID = Mathf.Min(_cellCountX - 1, Mathf.FloorToInt(Mathf.InverseLerp(_minX, _maxX, pos.x) * _cellCountX));
             int zID = Mathf.Min(_cellCountZ - 1, Mathf.FloorToInt(Mathf.InverseLerp(_minZ, _maxZ, pos.z) * _cellCountZ));
             
             _cellPosWSsList[xID + zID * _cellCountX].Add(pos);
         }
 
+        // 按区域，将每根草的坐标填充到一个数组中
         int offset = 0;
         Vector3[] allGrassPosWSSortedByCell = new Vector3[allGrassPos.Count];
         for (int i = 0; i < _cellPosWSsList.Length; i++)
@@ -150,39 +159,21 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
         uint[] args = new uint[5] {0, 0, 0, 0, 0};
         _argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
 
-        args[0] = (uint) GetGrassMeshCache().GetIndexCount(0);
-        args[1] = (uint) allGrassPos.Count;
-        args[2] = (uint) GetGrassMeshCache().GetIndexStart(0);
-        args[3] = (uint) GetGrassMeshCache().GetBaseVertex(0);
+        args[0] = (uint) GetGrassMeshCache().GetIndexCount(0);  // 参数0：获取某个 submesh 的索引计数
+        args[1] = (uint) allGrassPos.Count; // 参数1：草的数量
+        args[2] = (uint) GetGrassMeshCache().GetIndexStart(0);  // 参数2：获取某个 submesh 索引缓冲区中的起始索引位置
+        args[3] = (uint) GetGrassMeshCache().GetBaseVertex(0);  // 参数3：获取某个 submesh 的顶点索引的偏移
         args[4] = 0;
         
         _argsBuffer.SetData(args);
         
         // Update Cache
-        _instanceCountCache = allGrassPos.Count;
+        _cacheInstanceCount = allGrassPos.Count;
+        _cacheBoundSize = boundSize;
         
         // Set Buffer
         cullingComputeShader.SetBuffer(0, "_AllInstancesPosWSBuffer", _allInstancesPosWSBuffer);
         cullingComputeShader.SetBuffer(0, "_VisibleInstancesOnlyPosWSIDBuffer", _visibleInstancesOnlyPosWSIDBuffer);
-    }
-    
-    private void OnEnable()
-    {
-        Instance = this;
-    }
-
-    private void OnDisable()
-    {
-        _allInstancesPosWSBuffer?.Release();
-        _allInstancesPosWSBuffer = null;
-        
-        _visibleInstancesOnlyPosWSIDBuffer?.Release();
-        _visibleInstancesOnlyPosWSIDBuffer = null;
-        
-        _argsBuffer?.Release();
-        _argsBuffer = null;
-
-        Instance = null;
     }
 
     private void LateUpdate()
@@ -259,5 +250,24 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
         Bounds renderBound = new Bounds();
         renderBound.SetMinMax(new Vector3(_minX, 0, _minZ), new Vector3(_maxX, 0, _maxZ));
         Graphics.DrawMeshInstancedIndirect(GetGrassMeshCache(), 0, instanceMaterial, renderBound, _argsBuffer);
+    }
+    
+    private void OnEnable()
+    {
+        Instance = this;
+    }
+
+    private void OnDisable()
+    {
+        _allInstancesPosWSBuffer?.Release();
+        _allInstancesPosWSBuffer = null;
+        
+        _visibleInstancesOnlyPosWSIDBuffer?.Release();
+        _visibleInstancesOnlyPosWSIDBuffer = null;
+        
+        _argsBuffer?.Release();
+        _argsBuffer = null;
+
+        Instance = null;
     }
 }

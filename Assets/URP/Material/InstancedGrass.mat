@@ -35,7 +35,7 @@ Material:
     - _WindCIntensity: 0.125
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BoundSize: {r: 250, g: 250, b: 0, a: 0}
+    - _BoundSize: {r: 91.28664, g: 91.28664, b: 0, a: 0}
     - _GroundColor: {r: 0.21960784, g: 0.4627451, b: 0.25882354, a: 1}
     - _PivotPosWS: {r: 0, g: 0, b: 0, a: 0}
     - _WindATiling: {r: 0.1, g: 0.1, b: 0, a: 1}

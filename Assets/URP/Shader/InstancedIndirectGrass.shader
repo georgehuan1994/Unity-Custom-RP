@@ -129,58 +129,78 @@ Shader "Grass/InstancedIndirectGrass"
             {
                 Varyings OUT;
 
-                // we pre-transform to posWS in C# now
+                // 世界空间下，每根草的锚点坐标，已经在 C# 中预转换好了
                 float3 perGrassPivotPosWS = _AllInstancesTransformBuffer[_VisibleInstanceOnlyTransformIDBuffer[instanceID]];
 
-                // 草高度
-                float perGrassHeight = lerp(2,5,(sin(perGrassPivotPosWS.x*23.4643 + perGrassPivotPosWS.z) * 0.45 + 0.55)) * _GrassHeight;
+                // 每根草的高度：世界锚点坐标
+                // [0.1 ~ 1]: sin(perGrassPivotPosWS.x * 23.4643 + perGrassPivotPosWS.z) * 0.45 + 0.55
+                float perGrassHeight = lerp(2,5,(sin(perGrassPivotPosWS.x * 23.4643 + perGrassPivotPosWS.z) * 0.45 + 0.55)) * _GrassHeight;
 
-                // 用包围盒在贴图上取 UV
+                // 采样 _GrassBendingRT UV
                 float2 grassBendingUV = ((perGrassPivotPosWS.xz - _PivotPosWS.xz) / _BoundSize) * 0.5 + 0.5;
                 float stepped = tex2Dlod(_GrassBendingRT, float4(grassBendingUV, 0, 0)).x;
 
-                // 让草旋转至面向相机，billboard 效果
-                float3 cameraTransformRightWS = UNITY_MATRIX_V[0].xyz;      // 世界空间下，相机右单位向量
-                float3 cameraTransformUpWS = UNITY_MATRIX_V[1].xyz;         // 世界空间下，相机上单位向量
-                float3 cameraTransformForwardWS = -UNITY_MATRIX_V[2].xyz;    // 世界空间下，相机前单位向量
+                // Billboard
+                // =========================================
+                float3 cameraTransformRightWS = UNITY_MATRIX_V[0].xyz;      // 观察矩阵第1行：世界空间下，相机右方向的单位向量
+                float3 cameraTransformUpWS = UNITY_MATRIX_V[1].xyz;         // 观察矩阵第2行：世界空间下，相机上方向的单位向量
+                float3 cameraTransformForwardWS = -UNITY_MATRIX_V[2].xyz;   // 观察矩阵第3行：世界空间下，相机前方向的单位向量
 
-                // 使用 posXZ 获取随机宽度，最小 0.1
-                float3 positionOS = IN.positionOS.x * cameraTransformRightWS * _GrassWidth * (sin(perGrassPivotPosWS.x*95.4643 + perGrassPivotPosWS.z) * 0.45 + 0.55);
+                // 模型空间下，每根草顶点坐标：
+                // 左：verts[0] = new Vector3(-0.25f, 0);
+                // 右：verts[1] = new Vector3(+0.25f, 0);
+                // 上：verts[2] = new Vector3(-0.00f, 1);
 
-                // billboard 高度
+                // 让每根草旋转，面向相机，实现 billboard 效果
+                // 处理左右两个顶点的同时，做了一个宽度变化
+                float3 positionOS = IN.positionOS.x * cameraTransformRightWS * _GrassWidth * (sin(perGrassPivotPosWS.x * 95.4643 + perGrassPivotPosWS.z) * 0.45 + 0.55);
                 positionOS += IN.positionOS.y * cameraTransformUpWS;
+                // =========================================
 
-                // bending by RT
+                
+                // Bending by RT
+                // =========================================
                 float3 bendDir = cameraTransformForwardWS;
                 bendDir.xz *= 0.5;  // 让草在 bending 的时候便短一些，效果更好
                 bendDir.y = min(-0.5, bendDir.y);   // 防止相机视野变换时，草变得过长
                 positionOS = lerp(positionOS.xyz + bendDir * positionOS.y / -bendDir.y, positionOS.xyz, stepped * 0.95 + 0.05); // 防止完全倒下产生的 ZFighting
+                // =========================================
 
                 positionOS.y *= perGrassHeight;
 
+                // 获取从草指向相机的向量
                 float3 viewWS = _WorldSpaceCameraPos - perGrassPivotPosWS;
-                float ViewWSLength = length(viewWS);
-                positionOS += cameraTransformForwardWS * IN.positionOS.x * max(0, ViewWSLength * 0.0225);
+                // 获取每根草到相机的距离
+                float perGrassToCameraDistance = length(viewWS);
+                
+                // 将远处的草加宽一些，稍微抵消视锥变换的衰减
+                positionOS += cameraTransformRightWS * IN.positionOS.x * max(0, perGrassToCameraDistance * 0.0225);
 
-                // 从模型空间变换到世界空间，已经面向相机了，不需要矩阵变换
+                // 把每根草从模型空间变换到世界空间。已知每根草在世界空间中的坐标，不需要使用矩阵变换
                 float3 positionWS = positionOS + perGrassPivotPosWS;
 
+                
+                // Wind Swing
+                // =========================================
                 float wind = 0;
-                wind += (sin(_Time.y * _WindAFrequency + perGrassPivotPosWS.x * _WindATiling.x + perGrassPivotPosWS.z * _WindATiling.y)*_WindAWrap.x+_WindAWrap.y) * _WindAIntensity; //windA
-                wind += (sin(_Time.y * _WindBFrequency + perGrassPivotPosWS.x * _WindBTiling.x + perGrassPivotPosWS.z * _WindBTiling.y)*_WindBWrap.x+_WindBWrap.y) * _WindBIntensity; //windB
-                wind += (sin(_Time.y * _WindCFrequency + perGrassPivotPosWS.x * _WindCTiling.x + perGrassPivotPosWS.z * _WindCTiling.y)*_WindCWrap.x+_WindCWrap.y) * _WindCIntensity; //windC
+                // 叠加三重麦浪
+                wind += (sin(_Time.y * _WindAFrequency + perGrassPivotPosWS.x * _WindATiling.x + perGrassPivotPosWS.z * _WindATiling.y)*_WindAWrap.x+_WindAWrap.y) * _WindAIntensity;
+                wind += (sin(_Time.y * _WindBFrequency + perGrassPivotPosWS.x * _WindBTiling.x + perGrassPivotPosWS.z * _WindBTiling.y)*_WindBWrap.x+_WindBWrap.y) * _WindBIntensity;
+                wind += (sin(_Time.y * _WindCFrequency + perGrassPivotPosWS.x * _WindCTiling.x + perGrassPivotPosWS.z * _WindCTiling.y)*_WindCWrap.x+_WindCWrap.y) * _WindCIntensity;
 
-                wind *= IN.positionOS.y; //wind only affect top region, don't affect root region
-                float3 windOffset = cameraTransformRightWS * wind; //swing using billboard left right direction
+                // 只影响上顶点，左右顶点 (根部) 不动
+                wind *= IN.positionOS.y;
+                // 左右摆动偏移量，这里没有处理法线！
+                float3 windOffset = cameraTransformRightWS * wind;
                 positionWS.xyz += windOffset;
+                // =========================================
                 
                 // 将顶点转换到齐次裁剪空间
                 OUT.positionCS = TransformWorldToHClip(positionWS);
                 
-                /////////////////////////////////////////////////////////////////////
-                // lighting & color
-                /////////////////////////////////////////////////////////////////////
 
+                // Lighting & Color
+                // =========================================
                 Light mainLight;
 #if _MAIN_LIGHT_SHADOWS
                 mainLight = GetMainLight(TransformWorldToShadowCoord(positionWS));
@@ -188,15 +208,17 @@ Shader "Grass/InstancedIndirectGrass"
                 mainLight = GetMainLight();
 #endif
 
-                // 随机法向增量
-                half3 randomAddToN = (_RandomNormal* sin(perGrassPivotPosWS.x * 82.32523 + perGrassPivotPosWS.z) + wind * -0.25) * cameraTransformRightWS;
+                // 法向增量，仅在左右方向偏移
+                half3 randomAddToN = (_RandomNormal * sin(perGrassPivotPosWS.x * 82.32523 + perGrassPivotPosWS.z) + wind * -0.25) * cameraTransformRightWS;
 
                 // 在世界空间下，草的顶点默认是朝上的，这是一个简单却很有用的小技巧：
-                // - 偏转法线让光照不要太统一
+                // - 偏转法线让光照呈现出不一致的效果
                 // - 因为要实现 billboard 效果，所以要让 cameraTransformForwardWS 参与到计算中
+                // 原本朝上的法线，按 wind 周期左右摆动，再往相机方向倾，增加高光面积
                 half3 N = normalize(half3(0,1,0) + randomAddToN - cameraTransformForwardWS * 0.5);
 
-                half3 V = viewWS / ViewWSLength;
+                // 视野方向
+                half3 V = viewWS / perGrassToCameraDistance;
 
                 half3 baseColor = tex2Dlod(_BaseColorTexture, float4(TRANSFORM_TEX(positionWS.xz, _BaseColorTexture),0,0)) * _BaseColor;
                 half3 albedo = lerp(_GroundColor, baseColor, IN.positionOS.y);
@@ -214,9 +236,13 @@ Shader "Grass/InstancedIndirectGrass"
                     lightingResult += ApplySingleDirectLight(light, N, V, albedo, positionOS.y);
                 }
 #endif
+                // =========================================
+                
 
                 // Fog
+                // =========================================
                 float fogFactor = ComputeFogFactor(OUT.positionCS.z);
+                // =========================================
 
                 OUT.color = MixFog(lightingResult, fogFactor);
 

@@ -7,23 +7,28 @@ using UnityEngine;
 public class InstancedIndirectGrassPosDefine : MonoBehaviour
 {
     [Range(1, 40000000)] public int instanceCount = 1000000;
+    
+    [Range(1, 40), Min(1)] public int boundSize = 4;
+    
     public float drawDistance = 150;
-
+    
     private int _cacheCount = -1;
+
+    private int _cacheBoundSize = -1;
 
     private void Start()
     {
-        UpdatePosIfNeeded();
+        UpdatePosAndSizeIfNeeded();
     }
 
     private void Update()
     {
-        UpdatePosIfNeeded();
+        UpdatePosAndSizeIfNeeded();
     }
 
-    private void UpdatePosIfNeeded()
+    private void UpdatePosAndSizeIfNeeded()
     {
-        if (instanceCount == _cacheCount)
+        if (instanceCount == _cacheCount && _cacheBoundSize == boundSize)
         {
             return;
         }
@@ -32,7 +37,7 @@ public class InstancedIndirectGrassPosDefine : MonoBehaviour
         
         UnityEngine.Random.InitState(123);
 
-        float scale = Mathf.Sqrt((instanceCount / 4)) / 2f;
+        float scale = Mathf.Sqrt((instanceCount / boundSize)) / 2f;
         transform.localScale = new Vector3(scale, transform.localScale.y, scale);
 
         List<Vector3> positions = new List<Vector3>(instanceCount);
@@ -49,6 +54,9 @@ public class InstancedIndirectGrassPosDefine : MonoBehaviour
         }
 
         InstancedIndirectGrassRenderer.Instance.allGrassPos = positions;
+        InstancedIndirectGrassRenderer.Instance.boundSize = boundSize;
+        
         _cacheCount = positions.Count;
+        _cacheBoundSize = boundSize;
     }
 }
