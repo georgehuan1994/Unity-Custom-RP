@@ -200,10 +200,8 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
             Bounds cellBound = new Bounds(centerPosWS, sizeWS);
 
             // 检测绘制区域是否在视锥平面内
-            if (GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, cellBound))
-            {
+            // if (GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, cellBound))
                 _visibleCellIDList.Add(i);
-            }
         }
         Profiler.EndSample();
         
