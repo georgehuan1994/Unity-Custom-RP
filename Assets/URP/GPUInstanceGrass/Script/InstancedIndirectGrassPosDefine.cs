@@ -26,6 +26,9 @@ public class InstancedIndirectGrassPosDefine : MonoBehaviour
         UpdatePosAndSizeIfNeeded();
     }
 
+    /// <summary>
+    /// 刷新每根草的世界坐标
+    /// </summary>
     private void UpdatePosAndSizeIfNeeded()
     {
         if (instanceCount == _cacheCount && _cacheBoundSize == boundSize)
@@ -36,7 +39,7 @@ public class InstancedIndirectGrassPosDefine : MonoBehaviour
         Debug.Log("Update Position...");
         
         UnityEngine.Random.InitState(123);
-
+        
         float scale = Mathf.Sqrt((instanceCount / boundSize)) / 2f;
         transform.localScale = new Vector3(scale, transform.localScale.y, scale);
 

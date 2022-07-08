@@ -17,15 +17,15 @@ Shader "Grass/InstancedIndirectGrass"
         _WindATiling("WindA Tilting", Vector) = (0.1,0.1,0)
         _WindAWrap("WindA Wrap", Vector) = (0.5,0.5,0)
         
-        _WindBIntensity("_WindB Intensity", Float) = 0.25
-        _WindBFrequency("_WindB Frequency", Float) = 7.7
-        _WindBTiling("_WindB Tiling", Vector) = (.37,3,0)
-        _WindBWrap("_WindB Wrap", Vector) = (0.5,0.5,0)
+        _WindBIntensity("WindB Intensity", Float) = 0.25
+        _WindBFrequency("WindB Frequency", Float) = 7.7
+        _WindBTiling("WindB Tiling", Vector) = (.37,3,0)
+        _WindBWrap("WindB Wrap", Vector) = (0.5,0.5,0)
         
-        _WindCIntensity("_WindC Intensity", Float) = 0.125
-        _WindCFrequency("_WindC Frequency", Float) = 11.7
-        _WindCTiling("_WindC Tiling", Vector) = (0.77,3,0)
-        _WindCWrap("_WindC Wrap", Vector) = (0.5,0.5,0)
+        _WindCIntensity("WindC Intensity", Float) = 0.125
+        _WindCFrequency("WindC Frequency", Float) = 11.7
+        _WindCTiling("WindC Tiling", Vector) = (0.77,3,0)
+        _WindCWrap("WindC Wrap", Vector) = (0.5,0.5,0)
         
         [Header(Lighting)]
         _RandomNormal("RandomNormal", Float) = 0.15
@@ -67,7 +67,7 @@ Shader "Grass/InstancedIndirectGrass"
 
             struct Varyings
             {
-                float4 positionCS  : SV_POSITION;   //
+                float4 positionCS  : SV_POSITION;
                 half3 color        : COLOR;
             };
 
@@ -245,6 +245,7 @@ Shader "Grass/InstancedIndirectGrass"
                 // =========================================
 
                 OUT.color = MixFog(lightingResult, fogFactor);
+                // OUT.color = _BaseColor;
 
                 return OUT;
             }

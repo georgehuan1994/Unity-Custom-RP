@@ -200,12 +200,12 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
             Bounds cellBound = new Bounds(centerPosWS, sizeWS);
 
             // 检测绘制区域是否在视锥平面内
-            // if (GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, cellBound))
+            if (GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, cellBound))
                 _visibleCellIDList.Add(i);
         }
         Profiler.EndSample();
         
-        // 
+        // 向 Compute Shader 传递相机 VP 矩阵 和 绘制距离
         Matrix4x4 v = cam.worldToCameraMatrix;
         Matrix4x4 p = cam.projectionMatrix;
         Matrix4x4 vp = p * v;
@@ -215,7 +215,7 @@ public class InstancedIndirectGrassRenderer : MonoBehaviour
         cullingComputeShader.SetMatrix("_VPMatrix", vp);
         cullingComputeShader.SetFloat("_MaxDrawDistance", drawDistance);
 
-        // 处理每个绘制区域
+        // 在 Compute Shader 中处理每个绘制区域
         _dispatchCount = 0;
         for (int i = 0; i < _visibleCellIDList.Count; i++)
         {
