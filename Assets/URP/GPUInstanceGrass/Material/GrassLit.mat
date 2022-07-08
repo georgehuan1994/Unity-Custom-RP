@@ -26,5 +26,5 @@ Material:
     m_Floats: []
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _GroundColor: {r: 0.3018868, g: 0.3018868, b: 0.3018868, a: 1}
+    - _GroundColor: {r: 0.30188674, g: 0.30188674, b: 0.30188674, a: 1}
   m_BuildTextureStacks: []
