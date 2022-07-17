@@ -24,6 +24,8 @@ public partial class CameraRenderer
 
     private static ShaderTagId _unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
     private static ShaderTagId _litShaderTagId = new ShaderTagId("CustomLit");
+
+    private Lighting _lighting = new Lighting();
     
     public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
     {
@@ -36,6 +38,9 @@ public partial class CameraRenderer
         if (!Cull()) return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
 
         Setup();
+        
+        _lighting.Setup(context, _cullingResults);
+        
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
 #if UNITY_EDITOR
         DrawUnSupportShaders();
@@ -95,6 +100,7 @@ public partial class CameraRenderer
             enableInstancing = useGPUInstancing
         };
         
+        // Custom Lit Pass
         drawingSettings.SetShaderPassName(1, _litShaderTagId);
         
         // 仅渲染不透明队列

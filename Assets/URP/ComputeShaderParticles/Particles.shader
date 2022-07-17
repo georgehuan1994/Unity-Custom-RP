@@ -30,7 +30,7 @@ Shader "Subway/Particles"
                 float2 velocity;
             };
 
-            struct Attributes
+            struct Varyings
             {
                 float4 position : SV_POSITION;
                 float4 color : COLOR;
@@ -43,9 +43,9 @@ Shader "Subway/Particles"
             uniform float4 _ColorHigh;
             uniform float _HighSpeedValue;
 
-            Attributes vert(uint vertex_id : SV_VertexID, uint instance_id : SV_InstanceID)
+            Varyings vert(uint vertex_id : SV_VertexID, uint instance_id : SV_InstanceID)
             {
-                Attributes OUT = (Attributes)0;
+                Varyings OUT = (Varyings)0;
 
                 // 获取粒子速度，插值获得粒子颜色
                 float speed = length(Particles[instance_id].velocity);
@@ -59,7 +59,7 @@ Shader "Subway/Particles"
             }
 
 
-            float4 frag(Attributes IN) : COLOR
+            float4 frag(Varyings IN) : COLOR
             {
                 return IN.color;
             }

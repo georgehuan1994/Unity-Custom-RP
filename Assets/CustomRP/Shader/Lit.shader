@@ -4,7 +4,10 @@ Shader "Custom RP/Lit"
     {
         _BaseColor("Color", Color) = (0.5,0.5,0.5,1)
         _BaseMap("Texture", 2D) = "white" {}
-        [Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 0
+        _Metallic("Metallic", Range(0,1)) = 0
+        _Smoothness("Smoothness", Range(0,1)) = 0.5
+        [Toggle(_PREMULTIPLY_ALPHA)] _Premultiply_Alpha("PreMultiply Alpha", Float) = 0
+        [Toggle(_CLIPPING)] _Clipping("Alpha Clipping", Float) = 0
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         [Enum(UnityEngine.Rendering.BlendMode)]_SrcBlend("Src Blend", Float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)]_DstBlend("Dst Blend", Float) = 0
@@ -23,7 +26,9 @@ Shader "Custom RP/Lit"
             
             #include "LitPass.hlsl"
 
+            #pragma target 3.5                  // 不支持 WebGL 1.0 和 OpenGL ES 2.0
             #pragma shader_feature _CLIPPING    // 是否使用 Alpha Clip，不能在材质中同时使用透明度混合和 Alpha 剔除，前者不写入深度，后者写入
+            #pragma shader_feature _PREMULTIPLY_ALPHA   // 是否使用预乘 Alpha，开启可以有效的模拟玻璃效果
             #pragma multi_compile_instancing    // GPU Instancing 指令：生成两个变体：一个支持 GPU 实例化，一个不支持
             #pragma vertex LitPassVertex        // Lit Pass 顶点着色器
             #pragma fragment LitPassFragment    // Lit Pass 片元着色器
@@ -31,4 +36,6 @@ Shader "Custom RP/Lit"
             ENDHLSL
         }
     }
+    
+    CustomEditor "CustomShaderGUI"
 }
