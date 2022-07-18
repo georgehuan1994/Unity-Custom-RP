@@ -23,11 +23,14 @@ public class Lighting
     private static Vector4[] _dirLightDirections = new Vector4[MAXDirectionLightCount];
 
     private CullingResults _cullingResults;
+
+    private Shadows _shadows = new Shadows();
     
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults)
+    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings)
     {
         _cullingResults = cullingResults;
         _buffer.BeginSample(BufferName);
+        _shadows.Setup(context, cullingResults, shadowSettings);    // 在 SetupLight 前，先 SetupShadow
         SetupLights();
         _buffer.EndSample(BufferName);
         

@@ -27,7 +27,7 @@ public partial class CameraRenderer
 
     private Lighting _lighting = new Lighting();
     
-    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, ShadowSettings shadowSettings)
     {
         _context = context;
         _camera = camera;
@@ -35,11 +35,11 @@ public partial class CameraRenderer
         PrepareBuffer();
         PrepareForSceneWindow();
         
-        if (!Cull()) return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
+        if (!Cull(shadowSettings.maxDistance)) return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
 
         Setup();
         
-        _lighting.Setup(context, _cullingResults);
+        _lighting.Setup(context, _cullingResults, shadowSettings);
         
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
 #if UNITY_EDITOR
@@ -53,10 +53,13 @@ public partial class CameraRenderer
     /// 剔除
     /// </summary>
     /// <returns>剔除是否成功</returns>
-    private bool Cull()
+    private bool Cull(float maxShadowDistance)
     {
         if (_camera.TryGetCullingParameters(out ScriptableCullingParameters p))
         {
+            // 设置最大阴影距离
+            // 比相机看到的更远的阴影是没有意义的，所以取最大阴影距离和相机远剪辑平面中的最小值
+            p.shadowDistance = Mathf.Min(maxShadowDistance, _camera.farClipPlane);
             _cullingResults = _context.Cull(ref p);
             return true;
         }
