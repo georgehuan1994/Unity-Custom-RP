@@ -24,7 +24,10 @@ public class ShadowSettings
         public TextureSize atlasSize;
     }
 
-    public Directional directional = new Directional {atlasSize = TextureSize._1024};
+    public Directional directional = new Directional
+    {
+        atlasSize = TextureSize._1024
+    };
     
     
 }

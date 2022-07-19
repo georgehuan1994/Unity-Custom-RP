@@ -35,6 +35,22 @@ Shader "Custom RP/Lit"
             
             ENDHLSL
         }
+        
+        Pass
+        {
+            Tags { "LightMode" = "ShadowCaster" }
+            
+            ColorMask 0     // 禁用写颜色数据，只需要写深度
+            
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma shader_feature _CLIPPING
+            #pragma multi_compile_instancing
+            #pragma vertex ShadowCasterPassVertex        // ShadowCaster Pass 顶点着色器
+            #pragma fragment ShadowCasterPassFragment    // ShadowCaster Pass 片元着色器
+            ENDHLSL
+        }
+        
     }
     
     CustomEditor "CustomShaderGUI"

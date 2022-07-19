@@ -9,7 +9,7 @@ public partial class CameraRenderer
     
     private const string BufferName = "Render Camera";
 
-    private CommandBuffer _cb = new CommandBuffer
+    private CommandBuffer _commandBuffer = new CommandBuffer
     {
         name = BufferName
     };
@@ -36,16 +36,21 @@ public partial class CameraRenderer
         PrepareForSceneWindow();
         
         if (!Cull(shadowSettings.maxDistance)) return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
-
-        Setup();
         
-        _lighting.Setup(context, _cullingResults, shadowSettings);
+        _commandBuffer.BeginSample(SampleName);
+        ExecuteBuffer();
+        _lighting.Setup(context, _cullingResults, shadowSettings);  // 灯光设置
+        _commandBuffer.EndSample(SampleName);
+        
+        Setup();    // 相机设置
         
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
+        
 #if UNITY_EDITOR
         DrawUnSupportShaders();
         DrawGizmo();
 #endif
+        _lighting.Cleanup();    // 提交之前释放阴影贴图
         Submit();
     }
 
@@ -80,11 +85,11 @@ public partial class CameraRenderer
         
         // 向 command buffer 写入 清理指令
         // 向 command buffer 写入 采样指令
-        _cb.ClearRenderTarget(
+        _commandBuffer.ClearRenderTarget(
             flags <= CameraClearFlags.Depth,
             flags == CameraClearFlags.Color,
             flags == CameraClearFlags.Color ? _camera.backgroundColor.linear : Color.clear); // _cb.ClearRenderTarget(true, true, Color.clear);
-        _cb.BeginSample(SampleName);
+        _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
     }
     
@@ -130,7 +135,7 @@ public partial class CameraRenderer
     /// </summary>
     private void Submit()
     {
-        _cb.EndSample(SampleName);  // 向 command buffer 写入 profiler 结束采样指令
+        _commandBuffer.EndSample(SampleName);  // 向 command buffer 写入 profiler 结束采样指令
         ExecuteBuffer();
         _context.Submit();
     }
@@ -140,7 +145,7 @@ public partial class CameraRenderer
     /// </summary>
     private void ExecuteBuffer()
     {
-        _context.ExecuteCommandBuffer(_cb);
-        _cb.Clear();
+        _context.ExecuteCommandBuffer(_commandBuffer);
+        _commandBuffer.Clear();
     }
 }

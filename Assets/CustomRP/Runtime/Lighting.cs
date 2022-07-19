@@ -18,9 +18,11 @@ public class Lighting
     private static int _dirLightCountId = Shader.PropertyToID("_DirectionalLightCount");
     private static int _dirLightColorsId = Shader.PropertyToID("_DirectionalLightColors");
     private static int _dirLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections");
+    private static int _dirLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData");
 
     private static Vector4[] _dirLightColors = new Vector4[MAXDirectionLightCount];
     private static Vector4[] _dirLightDirections = new Vector4[MAXDirectionLightCount];
+    private static Vector4[] _dirLightShadowData = new Vector4[MAXDirectionLightCount];
 
     private CullingResults _cullingResults;
 
@@ -32,6 +34,7 @@ public class Lighting
         _buffer.BeginSample(BufferName);
         _shadows.Setup(context, cullingResults, shadowSettings);    // 在 SetupLight 前，先 SetupShadow
         SetupLights();
+        _shadows.Render();
         _buffer.EndSample(BufferName);
         
         context.ExecuteCommandBuffer(_buffer);
@@ -63,6 +66,7 @@ public class Lighting
         _buffer.SetGlobalInt(_dirLightCountId, visibleLights.Length);
         _buffer.SetGlobalVectorArray(_dirLightColorsId, _dirLightColors);
         _buffer.SetGlobalVectorArray(_dirLightDirectionsId, _dirLightDirections);
+        _buffer.SetGlobalVectorArray(_dirLightShadowDataId, _dirLightShadowData);
     }
     
     /// <summary>
@@ -74,6 +78,7 @@ public class Lighting
     {
         _dirLightColors[index] = visibleLight.finalColor;
         _dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        _dirLightShadowData[index] = _shadows.ReserveDirectionalShadows(visibleLight.light, index);
     }
     
     /// <summary>
@@ -87,5 +92,13 @@ public class Lighting
         // 用 CommandBuffer.SetGlobalVector 将灯光数据发送到 GPU
         _buffer.SetGlobalVector(_dirLightColorsId, light.color.linear * light.intensity);
         _buffer.SetGlobalVector(_dirLightDirectionsId, -light.transform.forward);
+    }
+
+    /// <summary>
+    /// 清理
+    /// </summary>
+    public void Cleanup()
+    {
+        _shadows.CleanUp();
     }
 }
