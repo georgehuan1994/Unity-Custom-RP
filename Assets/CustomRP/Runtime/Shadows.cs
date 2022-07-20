@@ -11,8 +11,10 @@ public class Shadows  // 在 Lighting 实例化并持有
     private const int MAXShadowedDirectionalLightCount = 4; // 平行投影灯的数量
     private int _shadowedDirectionalLightCount = 0;         // 计数器
     
+    private const int MAXCascades = 4;                      // 最大级联数
+    
     // 阴影矩阵：将着色点从【世界空间】转换到【光源空间】的变换矩阵
-    private static Matrix4x4[] _dirShadowMatrices = new Matrix4x4[MAXShadowedDirectionalLightCount];
+    private static Matrix4x4[] _dirShadowMatrices = new Matrix4x4[MAXShadowedDirectionalLightCount * MAXCascades];
     
     private const string BufferName = "Shadows";
 
@@ -70,7 +72,10 @@ public class Shadows  // 在 Lighting 实例化并持有
                 {
                     visibleLightIndex = visibleLightIndex
                 };
-            return new Vector2(light.shadowStrength, _shadowedDirectionalLightCount++);
+            
+            return new Vector2(
+                light.shadowStrength, 
+                _settings.directional.cascadeCount * _shadowedDirectionalLightCount++);
         }
         return Vector2.zero;
     }
@@ -109,8 +114,9 @@ public class Shadows  // 在 Lighting 实例化并持有
         _buffer.BeginSample(BufferName);
         ExecuteBuffer();
         
-        // 拆分图集，每盏灯单独一张纹理
-        int split = _shadowedDirectionalLightCount <= 1 ? 1 : 2;
+        // 按级联数和灯光数分割图集
+        int tiles = _shadowedDirectionalLightCount * _settings.directional.cascadeCount;
+        int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
         int tileSize = atlasSize / split;
         
         for (int i = 0; i < _shadowedDirectionalLightCount; i++)
@@ -138,25 +144,34 @@ public class Shadows  // 在 Lighting 实例化并持有
         // 使用剔除结果构造上下文所需的 DrawShadowsSettings
         var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex);
 
-        // 获取 viewMatrix、projMatrix、ShadowSplitData
-        _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-            light.visibleLightIndex, 0, 1, Vector3.zero, tileSize, 0f,
-            out Matrix4x4 viewMatrix,
-            out Matrix4x4 projMatrix,
-            out ShadowSplitData splitData);
+        int cascadeCount = _settings.directional.cascadeCount;
+        int tileOffset = index * cascadeCount;
+        Vector3 ratios = _settings.directional.CascadeRatios;
 
-        shadowSettings.splitData = splitData;
-        
-        // 分割图集，并计算 阴影矩阵 = 投影矩阵 × 视图矩阵
-        _dirShadowMatrices[index] =
-            ConvertToAtlasMatrix(projMatrix * viewMatrix, SetTileViewport(index, split, tileSize), split);
+        for (int i = 0; i < cascadeCount; i++)
+        {
+            // 获取 viewMatrix、projMatrix、ShadowSplitData
+            _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
+                light.visibleLightIndex, i, cascadeCount, ratios, tileSize, 0f,
+                out Matrix4x4 viewMatrix,
+                out Matrix4x4 projMatrix,
+                out ShadowSplitData splitData);
 
-        // 应用视图和投影矩阵
-        _buffer.SetViewProjectionMatrices(viewMatrix, projMatrix);
-        ExecuteBuffer();
+            shadowSettings.splitData = splitData;
+
+            int tileIndex = tileOffset + i;
+            
+            // 分割图集，并计算 阴影矩阵 = 投影矩阵 × 视图矩阵
+            _dirShadowMatrices[tileIndex] =
+                ConvertToAtlasMatrix(projMatrix * viewMatrix, SetTileViewport(tileIndex, split, tileSize), split);
+
+            // 应用视图和投影矩阵
+            _buffer.SetViewProjectionMatrices(viewMatrix, projMatrix);
+            ExecuteBuffer();
         
-        // 为单个光源应用标签名为 ShadowCaster 的着色器 Pass
-        _context.DrawShadows(ref shadowSettings);
+            // 为单个光源应用标签名为 ShadowCaster 的着色器 Pass
+            _context.DrawShadows(ref shadowSettings);
+        }
     }
     
     /// <summary>
@@ -168,7 +183,7 @@ public class Shadows  // 在 Lighting 实例化并持有
     /// <returns></returns>
     private Vector2 SetTileViewport(int index, int split, float tileSize)
     {
-        Vector2 offset = new Vector2(index % split, index / split);
+        Vector2 offset = new Vector2(index % split, (float)index / split);
         _buffer.SetViewport(new Rect(offset.x * tileSize, offset.y * tileSize, tileSize, tileSize));
         return offset;
     }
@@ -200,6 +215,10 @@ public class Shadows  // 在 Lighting 实例化并持有
         m.m11 = (0.5f * (m.m11 + m.m31) + offset.y * m.m31) * scale;
         m.m12 = (0.5f * (m.m12 + m.m32) + offset.y * m.m32) * scale;
         m.m13 = (0.5f * (m.m13 + m.m33) + offset.y * m.m33) * scale;
+        m.m20 = 0.5f * (m.m20 + m.m30);
+        m.m21 = 0.5f * (m.m21 + m.m31);
+        m.m22 = 0.5f * (m.m22 + m.m32);
+        m.m23 = 0.5f * (m.m23 + m.m33);
         
         return m;
     }

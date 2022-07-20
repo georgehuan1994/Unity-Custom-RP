@@ -30,7 +30,7 @@ struct Varyings
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输出结构中
 };
 
-Varyings ShadowCasterPassVertex (Attributes input)
+Varyings ShadowCasterPassVertex(Attributes input)
 {
     Varyings output;
 
@@ -49,7 +49,7 @@ Varyings ShadowCasterPassVertex (Attributes input)
     return output;
 }
 
-void ShadowCasterPassFragment (Varyings input) : SV_TARGET
+void ShadowCasterPassFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
 

@@ -8,7 +8,7 @@
 // 计算给定表面的入射光量 (颜色)
 float3 IncomingLight(Surface surface, Light light)
 {
-    return saturate(dot(surface.normal, light.direction)) * light.color;
+    return saturate(dot(surface.normal, light.direction) * light.attenuation) * light.color;
 }
 
 // 表面入射光量 (颜色) * 物体表面颜色 BRDF (漫反射 + 高光反射)
@@ -18,12 +18,12 @@ float3 GetLighting(Surface surface, BRDF brdf, Light light)
 }
 
 // 表面入射光量 (颜色) * 物体表面颜色 BRDF (漫反射 + 高光反射) - 所有可见光源
-float3 GetLighting(Surface surface, BRDF brdf)
+float3 GetLighting(Surface surfaceWS, BRDF brdf)
 {
     float3 color = 0.0;
     for (int i = 0; i < GetDirectionalLightCount(); i++)
     {
-        color += GetLighting(surface, brdf, GetDirectionLight(i));
+        color += GetLighting(surfaceWS, brdf, GetDirectionLight(i, surfaceWS));
     }
     return color;
 }

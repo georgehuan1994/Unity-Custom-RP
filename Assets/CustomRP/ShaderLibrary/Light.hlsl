@@ -16,6 +16,7 @@ struct Light
 {
     float3 color;
     float3 direction;
+    float attenuation;
 };
 
 // 获取平行光数量
@@ -24,12 +25,24 @@ int GetDirectionalLightCount()
     return _DirectionalLightCount;
 }
 
-// 获取光源信息
-Light GetDirectionLight(int index)
+// 获取平行光源的阴影数据
+DirectionalShadowData GetDirectionalShadowDate(int lightIndex)
+{
+    DirectionalShadowData data;
+    data.strength = _DirectionalLightShadowData[lightIndex].x;
+    data.tileIndex = _DirectionalLightShadowData[lightIndex].y;
+    return data;
+}
+
+// 获取平行光源
+Light GetDirectionLight(int index, Surface surfaceWS)
 {
     Light light;
     light.color = _DirectionalLightColors[index].rgb;
     light.direction = _DirectionalLightDirections[index].xyz;
+    // 获取阴影数据 (强度、阴影贴图图集索引)
+    DirectionalShadowData shadowData = GetDirectionalShadowDate(index);
+    light.attenuation = GetDirectionalShadowAttenuation(shadowData, surfaceWS);
     return light;
 }
 

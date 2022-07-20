@@ -43,6 +43,7 @@ Shader "Custom RP/Lit"
             ColorMask 0     // 禁用写颜色数据，只需要写深度
             
             HLSLPROGRAM
+            #include "ShadowCasterPass.hlsl"
             #pragma target 3.5
             #pragma shader_feature _CLIPPING
             #pragma multi_compile_instancing
