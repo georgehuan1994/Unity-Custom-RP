@@ -26,23 +26,24 @@ int GetDirectionalLightCount()
 }
 
 // 获取平行光源的阴影数据
-DirectionalShadowData GetDirectionalShadowDate(int lightIndex)
+DirectionalShadowData GetDirectionalShadowDate(int lightIndex, ShadowData shadowData)
 {
     DirectionalShadowData data;
     data.strength = _DirectionalLightShadowData[lightIndex].x;
-    data.tileIndex = _DirectionalLightShadowData[lightIndex].y;
+    data.tileIndex = _DirectionalLightShadowData[lightIndex].y + shadowData.cascadeIndex;
     return data;
 }
 
 // 获取平行光源
-Light GetDirectionLight(int index, Surface surfaceWS)
+Light GetDirectionLight(int index, Surface surfaceWS, ShadowData shadowData)
 {
     Light light;
     light.color = _DirectionalLightColors[index].rgb;
     light.direction = _DirectionalLightDirections[index].xyz;
+
     // 获取阴影数据 (强度、阴影贴图图集索引)
-    DirectionalShadowData shadowData = GetDirectionalShadowDate(index);
-    light.attenuation = GetDirectionalShadowAttenuation(shadowData, surfaceWS);
+    DirectionalShadowData dirShadowData = GetDirectionalShadowDate(index, shadowData);
+    light.attenuation = GetDirectionalShadowAttenuation(dirShadowData, surfaceWS);
     return light;
 }
 

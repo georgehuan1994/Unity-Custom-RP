@@ -11,15 +11,31 @@ TEXTURE2D_SHADOW(_DirectionalShadowAtlas);
 SAMPLER_CMP(SHADOW_SAMPLER);                    // 非 bilinear 模式，针对深度数据的线性插值模式
 
 CBUFFER_START(_CustomShadow)
+    int _CascadeCount;
+    float4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
     float4x4 _DirectionalShadowMatrices[MAX_SHADOWED_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
 CBUFFER_END
 
-// 每个光源的阴影数据
+// 通用的阴影数据
+struct ShadowData
+{
+    int cascadeIndex;
+};
+
+// 每个平行光的阴影参数
 struct DirectionalShadowData
 {
     float strength;
     int tileIndex;
 };
+
+// 获取通用的阴影数据
+ShadowData GetShadowData(Surface surfaceWS)
+{
+    ShadowData data;
+    data.cascadeIndex = 3;
+    return data;
+}
 
 // 对光源的阴影深度图进行采样
 float SampleDirectionalShadowAtlas(float3 positionSTS)

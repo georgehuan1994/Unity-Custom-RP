@@ -7,6 +7,9 @@ public class Shadows  // 在 Lighting 实例化并持有
 {
     private static int _dirShadowAtlasId = Shader.PropertyToID("_DirectionalShadowAtlas");
     private static int _dirShadowMatricesId = Shader.PropertyToID("_DirectionalShadowMatrices");
+
+    private static int _cascadeCountId = Shader.PropertyToID("_CascadeCount");
+    private static int _cascadeCullingSpheresId = Shader.PropertyToID("_CascadeCullingSpheres");
     
     private const int MAXShadowedDirectionalLightCount = 4; // 平行投影灯的数量
     private int _shadowedDirectionalLightCount = 0;         // 计数器
@@ -15,6 +18,9 @@ public class Shadows  // 在 Lighting 实例化并持有
     
     // 阴影矩阵：将着色点从【世界空间】转换到【光源空间】的变换矩阵
     private static Matrix4x4[] _dirShadowMatrices = new Matrix4x4[MAXShadowedDirectionalLightCount * MAXCascades];
+
+    // 级联剔除球体，xyz-位置，w-半径的平方 
+    private static Vector4[] _cascadeCullingSpheres = new Vector4[MAXCascades];
     
     private const string BufferName = "Shadows";
 
@@ -124,6 +130,12 @@ public class Shadows  // 在 Lighting 实例化并持有
             RenderDirectionalShadows(i, split, tileSize);
         }
         
+        // 将级联计数发送到 GPU
+        _buffer.SetGlobalInt(_cascadeCountId, _settings.directional.cascadeCount);
+        
+        // 将剔除球体信息发送到 GPU
+        _buffer.SetGlobalVectorArray(_cascadeCullingSpheresId, _cascadeCullingSpheres);
+        
         // 将阴影矩阵发送到 GPU
         _buffer.SetGlobalMatrixArray(_dirShadowMatricesId, _dirShadowMatrices);
         
@@ -158,6 +170,15 @@ public class Shadows  // 在 Lighting 实例化并持有
                 out ShadowSplitData splitData);
 
             shadowSettings.splitData = splitData;
+            
+            // 只需要处理第一盏灯，因为灯光的方向不会影响剔除球体
+            if (index == 0)
+            {
+                // 将 w 分量储存为 w^2，这样就不用在着色器中计算了
+                Vector4 cullingSphere = splitData.cullingSphere;
+                cullingSphere.w *= cullingSphere.w;
+                _cascadeCullingSpheres[i] = cullingSphere;
+            }
 
             int tileIndex = tileOffset + i;
             
