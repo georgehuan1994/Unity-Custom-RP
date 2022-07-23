@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Custom RP_Lit_White
   m_Shader: {fileID: 4800000, guid: 50a1c8295e1661242b60a83032adcd3f, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _RECEIVE_SHADOWS _SHADOWS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -30,6 +30,8 @@ Material:
     - _Metallic: 0
     - _PREMULTIPLY_ALPHA: 0
     - _Premultiply_Alpha: 0
+    - _ReceiveShadows: 1
+    - _Shadows: 0
     - _Smoothness: 0.5
     - _SrcBlend: 1
     - _ZWrite: 1

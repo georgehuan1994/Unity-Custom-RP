@@ -17,9 +17,13 @@ MonoBehaviour:
   useSRPBatcher: 0
   shadowSettings:
     maxDistance: 20
+    distanceFade: 0.2
     directional:
-      atlasSize: 1024
+      atlasSize: 2048
+      filter: 3
       cascadeCount: 4
-      cascadeRatio1: 0
-      cascadeRatio2: 0
-      cascadeRatio3: 0
+      cascadeRatio1: 0.2
+      cascadeRatio2: 0.3
+      cascadeRatio3: 0.5
+      cascadeFade: 1
+      cascadeBlend: 2
