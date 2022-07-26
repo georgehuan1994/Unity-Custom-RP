@@ -28,6 +28,7 @@ struct Attributes
     float3 positionOS : POSITION;
     float3 normalOS : NORMAL;
     float2 baseUV : TEXCOORD0;
+    GI_ATTRIBUTE_DATA
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输入结构中
 };
 
@@ -37,6 +38,7 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float3 normalWS : VAR_NORMAL;   // VAR_NORMAL 没有特别的语义，只是一个自定义的标识
     float2 baseUV : VAR_BASE_UV;    // VAR_BASE_UV 没有特别的语义，只是一个自定义的标识
+    GI_ATTRIBUTE_DATA
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输出结构中
 };
 
@@ -48,6 +50,8 @@ Varyings LitPassVertex (Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     // 将实例 ID 从输入结构复制到顶点着色器中的输出结构
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+    // 传递 GI 数据
+    TRANSFER_GI_DATA(input, output);
     
     output.positionWS = TransformObjectToWorld(input.positionOS);
     output.positionCS = TransformWorldToHClip(output.positionWS);
@@ -97,8 +101,9 @@ float4 LitPassFragment (Varyings input) : SV_TARGET
     #else
     BRDF brdf = GetBRDF(surface);
     #endif
-    
-    float3 color = GetLighting(surface, brdf);
+
+    GI gi = GetGI(GI_FRAGMENT_DATA(input));
+    float3 color = GetLighting(surface, brdf, gi);
     return float4(color, surface.alpha);
 }
 

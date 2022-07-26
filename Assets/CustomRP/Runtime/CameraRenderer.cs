@@ -105,7 +105,8 @@ public partial class CameraRenderer
         var drawingSettings = new DrawingSettings(_unlitShaderTagId, sortingSettings)
         {
             enableDynamicBatching = useDynamicBatching,
-            enableInstancing = useGPUInstancing
+            enableInstancing = useGPUInstancing,
+            perObjectData = PerObjectData.Lightmaps
         };
         
         // Custom Lit Pass

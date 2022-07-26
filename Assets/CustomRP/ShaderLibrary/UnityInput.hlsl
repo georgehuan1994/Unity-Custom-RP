@@ -11,6 +11,10 @@ CBUFFER_START(UnityPerDraw)
     float4x4 unity_WorldToObject;
     float4 unity_LODFade;
     float4 unity_WorldTransformParams;
+
+    // 2UV 变换作为 UnityPerDraw 缓冲区的一部分传递给 GPU
+    float4 unity_LightmapST;
+    float4 unity_DynamicLightmapST;
 CBUFFER_END
 
 float3 _WorldSpaceCameraPos;

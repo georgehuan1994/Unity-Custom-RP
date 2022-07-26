@@ -3,6 +3,7 @@
 #ifndef CUSTOM_LIGHTING_INCLUDED  // 引用保护
 #define CUSTOM_LIGHTING_INCLUDED
 
+#include "../ShaderLibrary/GI.hlsl"
 #include "../ShaderLibrary/Surface.hlsl"
 
 // 计算给定表面的入射光量 (颜色)
@@ -18,10 +19,10 @@ float3 GetLighting(Surface surface, BRDF brdf, Light light)
 }
 
 // 表面入射光量 (颜色) * 物体表面颜色 BRDF (漫反射 + 高光反射) - 所有可见光源
-float3 GetLighting(Surface surfaceWS, BRDF brdf)
+float3 GetLighting(Surface surfaceWS, BRDF brdf, GI gi)
 {
     ShadowData shadowData = GetShadowData(surfaceWS);
-    float3 color = 0.0;
+    float3 color = gi.diffuse;
     for (int i = 0; i < GetDirectionalLightCount(); i++)
     {
         Light light = GetDirectionLight(i, surfaceWS, shadowData);
