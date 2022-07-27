@@ -17,6 +17,11 @@ Shader "Custom RP/Lit"
     }
     SubShader
     {
+        HLSLINCLUDE
+		#include "../ShaderLibrary/Common.hlsl"
+		#include "LitInput.hlsl"
+		ENDHLSL
+        
         Pass
         {
             Tags { "LightMode" = "CustomLit" }  // 自定义光照标签
@@ -50,6 +55,7 @@ Shader "Custom RP/Lit"
             
             HLSLPROGRAM
             #include "ShadowCasterPass.hlsl"
+
             #pragma target 3.5
             // #pragma shader_feature _CLIPPING
             #pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
@@ -58,6 +64,19 @@ Shader "Custom RP/Lit"
             #pragma fragment ShadowCasterPassFragment    // ShadowCaster Pass 片元着色器
             ENDHLSL
         }
+        
+        Pass {
+			Tags { "LightMode" = "Meta" }
+
+			Cull Off
+
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma vertex MetaPassVertex
+			#pragma fragment MetaPassFragment
+			#include "MetaPass.hlsl"
+			ENDHLSL
+		}
         
     }
     

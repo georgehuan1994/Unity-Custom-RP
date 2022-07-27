@@ -3,18 +3,18 @@
 #ifndef CUSTOM_UNLIT_PASS_INCLUDED  // 引用保护
 #define CUSTOM_UNLIT_PASS_INCLUDED
 
-#include "../ShaderLibrary/Common.hlsl"
+// #include "../ShaderLibrary/Common.hlsl"
 
-TEXTURE2D(_BaseMap);        // 基础纹理
-SAMPLER(sampler_BaseMap);   // 采样器，这两个变量不能逐实例提供，应放在全局域中
-
-// 将属性放入常量缓冲区，并定义名为 "UnityPerMaterial" 的 buffer，优先使用 SRP Batch，然后是 GPU 实例
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-    // 定义具有指定类型和名称的每实例着色器属性
-    UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
-    UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
-    UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
-UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+// TEXTURE2D(_BaseMap);        // 基础纹理
+// SAMPLER(sampler_BaseMap);   // 采样器，这两个变量不能逐实例提供，应放在全局域中
+//
+// // 将属性放入常量缓冲区，并定义名为 "UnityPerMaterial" 的 buffer，优先使用 SRP Batch，然后是 GPU 实例
+// UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+//     // 定义具有指定类型和名称的每实例着色器属性
+//     UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
+//     UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
+//     UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
+// UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes
 {
@@ -42,8 +42,9 @@ Varyings UnlitPassVertex (Attributes input)
     output.positionCS = TransformWorldToHClip(positionWS);
 
     // 访问实例化常量缓冲区中的每个实例着色器属性
-    float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
-    output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    // float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
+    // output.baseUV = input.baseUV * baseST.xy + baseST.zw;
+    output.baseUV = TransformBaseUV(input.baseUV);
     
     return output;
 }
@@ -53,12 +54,14 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(input);
 
     // 使用采样器 sampler_BaseMap，从 _BaseMap 中采样
-    float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
-    float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
-    float4 base = baseMap * baseColor;
+    // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
+    // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
+    // float4 base = baseMap * baseColor;
+    float4 base = GetBase(input.baseUV);
     
     #if defined(_CLIPPING)
-    clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
+    // clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
+    clip(base.a - GetCutoff(input.baseUV));
     #endif
     
     return base;

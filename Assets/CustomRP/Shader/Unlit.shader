@@ -12,6 +12,11 @@ Shader "Custom RP/Unlit"
     }
     SubShader
     {
+        HLSLINCLUDE
+		#include "../ShaderLibrary/Common.hlsl"
+		#include "UnlitInput.hlsl"
+		ENDHLSL
+        
         Pass
         {
             Blend [_SrcBlend] [_DstBlend]   // 源颜色 (该片元产生的颜色) * SrcFactor + 目标颜色 (已经存在于颜色缓存的颜色) * DstFactor
@@ -28,6 +33,19 @@ Shader "Custom RP/Unlit"
             
             ENDHLSL
         }
+        
+        Pass {
+			Tags { "LightMode" = "Meta" }
+
+			Cull Off
+
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma vertex MetaPassVertex
+			#pragma fragment MetaPassFragment
+			#include "MetaPass.hlsl"
+			ENDHLSL
+		}
     }
     
     CustomEditor "CustomShaderGUI"

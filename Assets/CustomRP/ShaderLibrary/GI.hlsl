@@ -18,12 +18,15 @@
 TEXTURE2D(unity_Lightmap);                      // 光照贴图
 SAMPLER(samplerunity_Lightmap);                 // 采样器
 
+TEXTURE3D_FLOAT(unity_ProbeVolumeSH);           // 3D float texture
+SAMPLER(samplerunity_ProbeVolumeSH);            
+
 struct GI
 {
     float3 diffuse;
 };
 
-// 采样
+// 采样 Lighting Map
 float3 SampleLightMap(float2 lightMapUV)
 {
     #if defined(LIGHTMAP_ON)
@@ -43,11 +46,43 @@ float3 SampleLightMap(float2 lightMapUV)
     #endif
 }
 
+// 采样 Light Probes
+float3 SampleLightProbe(Surface surfaceWS)
+{
+    #if defined(LIGHTMAP_ON)
+        return 0.0;
+    #else
+        if (unity_ProbeVolumeParams.x)
+        {
+            return SampleProbeVolumeSH4(
+                    TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH),
+                    surfaceWS.position, surfaceWS.normal,
+                    unity_ProbeVolumeWorldToObject,
+                    unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z,
+                    unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz
+                );
+        }
+        else
+        {
+            float4 coefficients[7];
+            coefficients[0] = unity_SHAr;
+            coefficients[1] = unity_SHAg;
+            coefficients[2] = unity_SHAb;
+            coefficients[3] = unity_SHBr;
+            coefficients[4] = unity_SHBg;
+            coefficients[5] = unity_SHBb;
+            coefficients[6] = unity_SHC;
+            // 返回 0 和 SampleSH9 的最大值
+            return max(0.0, SampleSH9(coefficients, surfaceWS.normal));
+        }
+    #endif
+}
+
 // 给定 光照贴图 uv，获取 GI 结构
-GI GetGI(float2 lightMapUV)
+GI GetGI(float2 lightMapUV, Surface surfaceWS)
 {
     GI gi;
-    gi.diffuse = SampleLightMap(lightMapUV);
+    gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
     
     // gi.diffuse = float3(lightMapUV, 0.0);
     return gi;

@@ -15,6 +15,21 @@ CBUFFER_START(UnityPerDraw)
     // 2UV 变换作为 UnityPerDraw 缓冲区的一部分传递给 GPU
     float4 unity_LightmapST;
     float4 unity_DynamicLightmapST;
+
+    // 红光、绿光、蓝光 三阶多项式分量
+    float4 unity_SHAr;
+    float4 unity_SHAg;
+    float4 unity_SHAb;
+    float4 unity_SHBr;
+    float4 unity_SHBg;
+    float4 unity_SHBb;
+    float4 unity_SHC;
+
+    // 
+    float4 unity_ProbeVolumeParams;
+    float4x4 unity_ProbeVolumeWorldToObject;
+    float4 unity_ProbeVolumeSizeInv;
+    float4 unity_ProbeVolumeMin;
 CBUFFER_END
 
 float3 _WorldSpaceCameraPos;
