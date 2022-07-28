@@ -44,8 +44,8 @@ Light GetDirectionLight(int index, Surface surfaceWS, ShadowData shadowData)
 
     // 获取阴影数据 (强度、阴影贴图图集索引)
     DirectionalShadowData dirShadowData = GetDirectionalShadowDate(index, shadowData);
-    light.attenuation = GetDirectionalShadowAttenuation(dirShadowData, shadowData, surfaceWS);
     // light.attenuation = shadowData.cascadeIndex * 0.25;
+    light.attenuation = GetDirectionalShadowAttenuation(dirShadowData, shadowData, surfaceWS);
     return light;
 }
 
