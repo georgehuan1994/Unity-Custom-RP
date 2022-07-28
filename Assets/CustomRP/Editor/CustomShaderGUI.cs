@@ -217,6 +217,24 @@ public class CustomShaderGUI : ShaderGUI
             }
         }
     }
+
+    private void CopyLightMappingProperties()
+    {
+        MaterialProperty mainTex = FindProperty("_MainTex", _properties, false);
+        MaterialProperty baseMap = FindProperty("_BaseMap", _properties, false);
+        if (mainTex != null && baseMap != null)
+        {
+            mainTex.textureValue = baseMap.textureValue;
+            mainTex.textureScaleAndOffset = baseMap.textureScaleAndOffset;
+        }
+
+        MaterialProperty color = FindProperty("_Color", _properties, false);
+        MaterialProperty baseColor = FindProperty("_BaseColor", _properties, false);
+        if (color != null && baseColor != null)
+        {
+            color.colorValue = baseColor.colorValue;
+        }
+    }
     
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
@@ -244,6 +262,7 @@ public class CustomShaderGUI : ShaderGUI
         if (EditorGUI.EndChangeCheck())
         {
             SetShadowCasterPass();
+            CopyLightMappingProperties();
         }
     }
 }
