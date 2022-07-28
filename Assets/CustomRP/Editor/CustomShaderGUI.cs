@@ -68,33 +68,6 @@ public class CustomShaderGUI : ShaderGUI
     /// <returns></returns>
     bool HasProperty(string name) => FindProperty(name, _properties, false) != null;
 
-    public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
-    {
-        base.OnGUI(materialEditor, properties);
-        
-        EditorGUI.BeginChangeCheck();
-        
-        _materialEditor = materialEditor;
-        _materials = materialEditor.targets;
-        _properties = properties;
-        
-        EditorGUILayout.Space();
-        
-        _showPresets = EditorGUILayout.Foldout(_showPresets, "Presets", true);
-        if (_showPresets) 
-        {
-            OpaquePreset();
-            ClipPreset();
-            FadePreset();
-            TransparentPreset();
-        }
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            SetShadowCasterPass();
-        }
-    }
-
     /// <summary>
     /// 启用或禁用关键字
     /// </summary>
@@ -229,6 +202,48 @@ public class CustomShaderGUI : ShaderGUI
         foreach (Material m in _materials) 
         {
             m.SetShaderPassEnabled("ShadowCaster", enabled);
+        }
+    }
+
+    private void BakedEmission()
+    {
+        EditorGUI.BeginChangeCheck();
+        _materialEditor.LightmapEmissionProperty();
+        if (EditorGUI.EndChangeCheck())
+        {
+            foreach (Material material in _materialEditor.targets)
+            {
+                material.globalIlluminationFlags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
+        }
+    }
+    
+    public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
+    {
+        base.OnGUI(materialEditor, properties);
+        
+        EditorGUI.BeginChangeCheck();
+        
+        _materialEditor = materialEditor;
+        _materials = materialEditor.targets;
+        _properties = properties;
+        
+        BakedEmission();
+        
+        EditorGUILayout.Space();
+        
+        _showPresets = EditorGUILayout.Foldout(_showPresets, "Presets", true);
+        if (_showPresets) 
+        {
+            OpaquePreset();
+            ClipPreset();
+            FadePreset();
+            TransparentPreset();
+        }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            SetShadowCasterPass();
         }
     }
 }
