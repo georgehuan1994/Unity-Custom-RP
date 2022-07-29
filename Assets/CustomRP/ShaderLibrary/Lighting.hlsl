@@ -3,8 +3,8 @@
 #ifndef CUSTOM_LIGHTING_INCLUDED  // 引用保护
 #define CUSTOM_LIGHTING_INCLUDED
 
-#include "../ShaderLibrary/GI.hlsl"
-#include "../ShaderLibrary/Surface.hlsl"
+// #include "../ShaderLibrary/GI.hlsl"
+// #include "../ShaderLibrary/Surface.hlsl"
 
 // 计算给定表面的入射光量 (颜色)
 float3 IncomingLight(Surface surface, Light light)

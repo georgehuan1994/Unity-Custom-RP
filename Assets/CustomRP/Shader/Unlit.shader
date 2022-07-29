@@ -23,16 +23,28 @@ Shader "Custom RP/Unlit"
             ZWrite [_ZWrite]                // 深度写入开关
             
             HLSLPROGRAM
-            
-            #include "UnlitPass.hlsl"
-
             #pragma shader_feature _CLIPPING    // 是否使用 Alpha Clip，不能在材质中同时使用透明度混合和 Alpha 剔除，前者不写入深度，后者写入
             #pragma multi_compile_instancing    // GPU Instancing 指令：生成两个变体：一个支持 GPU 实例化，一个不支持
             #pragma vertex UnlitPassVertex      // Unlit Pass 顶点着色器
             #pragma fragment UnlitPassFragment  // Unlit Pass 片元着色器
-            
+            #include "UnlitPass.hlsl"
             ENDHLSL
         }
+    	
+    	Pass {
+			Tags { "LightMode" = "ShadowCaster" }
+
+			ColorMask 0
+
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
+			#pragma multi_compile_instancing
+			#pragma vertex ShadowCasterPassVertex
+			#pragma fragment ShadowCasterPassFragment
+			#include "ShadowCasterPass.hlsl"
+			ENDHLSL
+		}
         
         Pass {
 			Tags { "LightMode" = "Meta" }

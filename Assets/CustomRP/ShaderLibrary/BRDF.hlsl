@@ -3,7 +3,7 @@
 #ifndef CUSTOM_BRDF_INCLUDED  // 引用保护
 #define CUSTOM_BRDF_INCLUDED
 
-#include "../ShaderLibrary/Surface.hlsl"
+// #include "../ShaderLibrary/Surface.hlsl"
 
 struct BRDF
 {

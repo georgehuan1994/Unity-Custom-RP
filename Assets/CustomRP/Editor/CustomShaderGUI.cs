@@ -213,6 +213,7 @@ public class CustomShaderGUI : ShaderGUI
         {
             foreach (Material material in _materialEditor.targets)
             {
+                // material.globalIlluminationFlags & ~MaterialGlobalIlluminationFlags.EmissiveIsBlack
                 material.globalIlluminationFlags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
             }
         }

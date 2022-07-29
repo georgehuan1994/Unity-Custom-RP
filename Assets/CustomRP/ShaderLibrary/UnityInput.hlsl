@@ -25,7 +25,6 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_SHBb;
     float4 unity_SHC;
 
-    // 
     float4 unity_ProbeVolumeParams;
     float4x4 unity_ProbeVolumeWorldToObject;
     float4 unity_ProbeVolumeSizeInv;
