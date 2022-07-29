@@ -5,6 +5,7 @@
 #include "../ShaderLibrary/Shadows.hlsl"
 #include "../ShaderLibrary/Light.hlsl"
 #include "../ShaderLibrary/BRDF.hlsl"
+#include "../ShaderLibrary/Lighting.hlsl"
 
 bool4 unity_MetaFragmentControl;
 float unity_OneOverOutputBoost;
@@ -13,7 +14,7 @@ float unity_MaxOutputValue;
 struct Attributes {
     float3 positionOS : POSITION;
     float2 baseUV : TEXCOORD0;
-    float2 lightMapUV : TEXCOORD1;
+    float2 lightMapUV : TEXCOORD1;  // mesh.uv2 第二套 uv，用于烘焙
 };
 
 struct Varyings {
@@ -24,12 +25,16 @@ struct Varyings {
 Varyings MetaPassVertex (Attributes input)
 {
     Varyings output;
-    // xy = 2uv 在 Lighting Map 中的映射
+
+    // 不明白这里为什么要这样写，直接 TransformObjectToHClip 效果也没区别
     input.positionOS.xy = input.lightMapUV * unity_LightmapST.xy + unity_LightmapST.zw;
-    // 除非明确使用 Z 坐标，否则 OpenGL 似乎无法正常工作
-    input.positionOS.z = input.positionOS.z > 0.0 ? FLT_MIN : 0.0;
-    // XY object-space position，直接把 Lighting Map 映射到裁剪空间
+    input.positionOS.z = input.positionOS.z > 0.0 ? FLT_MIN : 0.0;  // 不能抛弃 Z 坐标，否则 OpenGL 无法正常工作
     output.positionCS = TransformWorldToHClip(input.positionOS);
+
+    // output.positionCS = 0.0;
+    // output.positionCS = TransformObjectToHClip(input.positionOS);
+    // output.positionCS = mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), float4(input.positionOS, 1.0)));
+    
     output.baseUV = TransformBaseUV(input.baseUV);
     return output;
 }
@@ -44,13 +49,13 @@ float4 MetaPassFragment (Varyings input) : SV_TARGET
     surface.smoothness = GetSmoothness(input.baseUV);
     BRDF brdf = GetBRDF(surface);
     float4 meta = 0.0;
-    if (unity_MetaFragmentControl.x)
+    if (unity_MetaFragmentControl.x)    // Global Illumination：None
     {
         meta = float4(brdf.diffuse, 1.0);
         meta.rgb += brdf.specular * brdf.roughness * 0.5;
         meta.rgb = min(PositivePow(meta.rgb, unity_OneOverOutputBoost), unity_MaxOutputValue);
     }
-    else if (unity_MetaFragmentControl.y)
+    else if (unity_MetaFragmentControl.y)   // Global Illumination：Baked
     {
         meta = float4(GetEmission(input.baseUV), 1.0);
     }

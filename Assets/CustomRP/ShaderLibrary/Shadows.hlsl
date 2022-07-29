@@ -125,20 +125,20 @@ float FilterDirectionalShadow(float3 positionSTS)
 float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowData global, Surface surfaceWS)
 {
     #if !defined(_RECEIVE_SHADOWS)
-    return 1.0;
+        return 1.0;
     #endif
-    
+  
     if (directional.strength <= 0) return 1.0;
 
     // 法线偏移
     float3 normalBias = surfaceWS.normal * (directional.normalBias * _CascadeData[global.cascadeIndex].y);
-    
+        
     // 将着色点转换到光源空间 (阴影纹理空间)
     float4 positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex], float4(surfaceWS.position + normalBias, 1.0));
 
     // 采样结果表示有多少光到达了着色点：0 表示完全被阴影覆盖，1 表示完全没有阴影
-    float result = FilterDirectionalShadow(positionSTS);
-    
+    float result = FilterDirectionalShadow(positionSTS.xyz);
+        
     return lerp(1.0, result, directional.strength);
 }
 

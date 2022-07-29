@@ -4,11 +4,13 @@
 #define CUSTOM_LIT_PASS_INCLUDED
 
 // #include "../ShaderLibrary/Common.hlsl"
+
 #include "../ShaderLibrary/Surface.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
 #include "../ShaderLibrary/Light.hlsl"
 #include "../ShaderLibrary/BRDF.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
+#include "../ShaderLibrary/GI.hlsl"
 
 // TEXTURE2D(_BaseMap);        // 基础纹理
 // SAMPLER(sampler_BaseMap);   // 采样器，这两个变量不能逐实例提供，应放在全局域中

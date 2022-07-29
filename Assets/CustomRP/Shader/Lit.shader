@@ -84,7 +84,7 @@ Shader "Custom RP/Lit"
 			#pragma target 3.5
 			#pragma vertex MetaPassVertex
 			#pragma fragment MetaPassFragment
-			#include "MetaPass.hlsl"
+			#include "MetaPass.hlsl"					// 不能放在前面
 			ENDHLSL
 		}
         

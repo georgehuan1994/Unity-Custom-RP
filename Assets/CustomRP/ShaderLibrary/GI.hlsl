@@ -1,6 +1,8 @@
 #ifndef CUSTOM_GI_INCLUDED
 #define CUSTOM_GI_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+
 #if defined(LIGHTMAP_ON)
     #define GI_ATTRIBUTE_DATA float2 lightMapUV : TEXCOORD1;
     #define GI_VARYINGS_DATA float2 lightMapUV : VAR_LIGHT_MAP_UV;
@@ -12,8 +14,6 @@
     #define TRANSFER_GI_DATA(input, output)     // 从顶点着色器传递到片元着色器
     #define GI_FRAGMENT_DATA(input) 0.0         // 获取 Lightmap UV
 #endif
-
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
 TEXTURE2D(unity_Lightmap);                      // 光照贴图
 SAMPLER(samplerunity_Lightmap);                 // 采样器
