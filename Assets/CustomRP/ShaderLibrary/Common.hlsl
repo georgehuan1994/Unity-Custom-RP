@@ -16,6 +16,10 @@
 #define UNITY_MATRIX_VP unity_MatrixVP              // View-Projection
 #define UNITY_MATRIX_P glstate_matrix_projection    // 变换信息
 
+#if defined(_SHADOW_MASK_DISTANCE)
+    #define SHADOWS_SHADOWMASK
+#endif
+
 // UnityInstancing.hlsl 的作用就是重定义这些宏以访问实例数据的数组
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"

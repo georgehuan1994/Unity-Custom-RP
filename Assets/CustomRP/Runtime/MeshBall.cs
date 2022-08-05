@@ -70,8 +70,10 @@ public class MeshBall : MonoBehaviour
                 }
 
                 var lightProbes = new SphericalHarmonicsL2[1023];
-                LightProbes.CalculateInterpolatedLightAndOcclusionProbes(position, lightProbes, null);
-                _block.CopySHCoefficientArraysFrom(lightProbes);  
+                var occlusionProbes = new Vector4[1023];
+                LightProbes.CalculateInterpolatedLightAndOcclusionProbes(position, lightProbes, occlusionProbes);
+                _block.CopySHCoefficientArraysFrom(lightProbes);
+                _block.CopyProbeOcclusionArrayFrom(occlusionProbes);
             }
         }
 

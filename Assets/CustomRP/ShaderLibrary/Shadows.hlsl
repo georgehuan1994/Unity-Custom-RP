@@ -32,12 +32,20 @@ CBUFFER_START(_CustomShadow)
     float4 _ShadowDistanceFade;
 CBUFFER_END
 
+// ShadowMask 结构
+struct ShadowMask
+{
+    bool distance;
+    float4 shadows;
+};
+
 // 级联阴影数据
 struct ShadowData
 {
     int cascadeIndex;   // 级联等级索引
     float strength;     // 级联强度系数
     float cascadeBlend;
+    ShadowMask shadowMask;
 };
 
 // 每个平行光的阴影参数
@@ -55,10 +63,13 @@ float FadeShadowStrength(float distance, float scale, float fade)
     return saturate((1.0 - distance * scale) * fade);
 }
 
-// 获取级联阴影数据
+// 获取阴影数据：级联、ShadowMask
 ShadowData GetShadowData(Surface surfaceWS)
 {
     ShadowData data;
+    data.shadowMask.distance = false;
+    data.shadowMask.shadows = 1.0;
+    
     data.cascadeBlend = 1.0;
     data.strength = FadeShadowStrength(surfaceWS.depth, _ShadowDistanceFade.x, _ShadowDistanceFade.y);
 

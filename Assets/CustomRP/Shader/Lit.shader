@@ -46,6 +46,7 @@ Shader "Custom RP/Lit"
             #pragma shader_feature _PREMULTIPLY_ALPHA   // 是否使用预乘 Alpha，开启可以有效的模拟玻璃效果
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
             #pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
+            #pragma multi_compile _ _SHADOW_MASK_DISTANCE
             #pragma multi_compile _ LIGHTMAP_ON // 是否使用光照贴图
             #pragma multi_compile_instancing    // GPU Instancing 指令：生成两个变体：一个支持 GPU 实例化，一个不支持
             #pragma vertex LitPassVertex        // Lit Pass 顶点着色器

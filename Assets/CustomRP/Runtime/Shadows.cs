@@ -14,6 +14,11 @@ public class Shadows  // 在 Lighting 实例化并持有
     private static int _shadowAtlasSizeId = Shader.PropertyToID("_ShadowAtlasSize");
     private static int _shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade");
 
+    private static string[] _shadowMaskKeywords =
+    {
+        "_SHADOW_MASK_DISTANCE"     // 判断是否使用 ShadowMask
+    };
+
     private static string[] _directionalFilterKeywords =
     {
         "_DIRECTIONAL_PCF3",
@@ -68,12 +73,17 @@ public class Shadows  // 在 Lighting 实例化并持有
     private ShadowedDirectionalLight[] _shadowedDirectionalLights =
         new ShadowedDirectionalLight[MAXShadowedDirectionalLightCount];
 
+    // 是否要应用 ShadowMask
+    private bool _useShadowMask;
+    
+    
     public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings settings)
     {
         _context = context;
         _cullingResults = cullingResults;
         _settings = settings;
         _shadowedDirectionalLightCount = 0;
+        _useShadowMask = false;
     }
 
     /// <summary>
@@ -93,6 +103,14 @@ public class Shadows  // 在 Lighting 实例化并持有
             light.shadowStrength > 0f &&
             _cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
         {
+            LightBakingOutput lightBaking = light.bakingOutput;
+            // 如果灯光的烘焙类型为 Mixed，且混合光照模式为 ShadowMask
+            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
+                lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+            {
+                _useShadowMask = true;  // 启用 ShadowMask
+            }
+            
             // 将灯光存入数组，作为平行投影光
             _shadowedDirectionalLights[_shadowedDirectionalLightCount] = 
                 new ShadowedDirectionalLight
@@ -125,6 +143,11 @@ public class Shadows  // 在 Lighting 实例化并持有
             _buffer.GetTemporaryRT(_dirShadowAtlasId, 1, 1,
                 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
         }
+        
+        _buffer.BeginSample(BufferName);
+        SetKeywords(_shadowMaskKeywords, _useShadowMask ? 0 : 1);
+        _buffer.EndSample(BufferName);
+        ExecuteBuffer();
     }
 
     /// <summary>

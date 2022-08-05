@@ -12,6 +12,9 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     float4 unity_WorldTransformParams;
 
+    // 光照探针中的遮挡数据
+    float4 unity_ProbesOcclusion;
+
     // 2UV 变换作为 UnityPerDraw 缓冲区的一部分传递给 GPU
     float4 unity_LightmapST;
     float4 unity_DynamicLightmapST;
