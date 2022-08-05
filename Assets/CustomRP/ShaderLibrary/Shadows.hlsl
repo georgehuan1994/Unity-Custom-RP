@@ -35,6 +35,7 @@ CBUFFER_END
 // ShadowMask 结构
 struct ShadowMask
 {
+    bool always;
     bool distance;
     float4 shadows;
 };
@@ -67,6 +68,7 @@ float FadeShadowStrength(float distance, float scale, float fade)
 ShadowData GetShadowData(Surface surfaceWS)
 {
     ShadowData data;
+    data.shadowMask.always = false;
     data.shadowMask.distance = false;
     data.shadowMask.shadows = 1.0;
     
@@ -114,6 +116,7 @@ float SampleDirectionalShadowAtlas(float3 positionSTS)
     return SAMPLE_TEXTURE2D_SHADOW(_DirectionalShadowAtlas, SHADOW_SAMPLER, positionSTS);
 }
 
+// 实时平行光阴影过滤器
 float FilterDirectionalShadow(float3 positionSTS)
 {
     #if defined(DIRECTIONAL_FILTER_SETUP)
@@ -132,25 +135,117 @@ float FilterDirectionalShadow(float3 positionSTS)
     #endif
 }
 
-// 根据采样结果，返回阴影衰减 (修正后的阴影强度)
+// 获取级联阴影贴图中的光照衰减值
+float GetCascadeShadow(DirectionalShadowData directional, ShadowData global, Surface surfaceWS)
+{
+    // 法线偏移
+    float3 normalBias = surfaceWS.normal * (directional.normalBias * _CascadeData[global.cascadeIndex].y);
+
+    // 将着色点转换到光源空间 (阴影纹理空间)
+    float3 positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex], float4(surfaceWS.position + normalBias, 1.0)).xyz;
+
+    // 采样结果表示有多少光到达了着色点：0 表示完全被阴影覆盖，1 表示完全没有阴影
+    float result = FilterDirectionalShadow(positionSTS.xyz);
+
+    if (global.cascadeBlend < 1.0)
+    {
+        normalBias = surfaceWS.normal * (directional.normalBias * _CascadeData[global.cascadeIndex + 1].y);
+        positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex + 1], float4(surfaceWS.position + normalBias, 1.0)).xyz;
+        result = lerp(FilterDirectionalShadow(positionSTS), result, global.cascadeBlend);
+    }
+
+    return result;
+}
+
+// 获取阴影遮罩贴图中的光照衰减值
+float GetBakedShadow(ShadowMask mask)
+{
+    // 0 表示完全被阴影覆盖，1 表示完全没有阴影
+    // 0 表示完全没有光照，1 表示光照不受影响
+    float shadow = 1.0;
+    
+    // 如果启用了距离模式，使用 r 通道作为光照衰减值
+    if (mask.always || mask.distance)
+    {
+        shadow = mask.shadows.r;
+    }
+    
+    // 没有启用则返回 1
+    return shadow;
+}
+
+// 获取阴影遮罩贴图中的光照衰减值
+float GetBakedShadow(ShadowMask mask, float strength)
+{
+    // 如果启用了距离模式，使用 r 通道作为光照衰减值
+    if (mask.always || mask.distance)
+    {
+        // 并使用平行光的阴影强度在 1 和 光照衰减值 之间做插值
+        return lerp(1.0, GetBakedShadow(mask), strength);
+    }
+    
+    // 没有启用则返回 1
+    return 1.0;
+}
+
+// 混合阴影遮罩贴图和实时阴影贴图的光照衰减值
+float MixBakedAndRealtimeShadows(ShadowData global, float shadow, float strength)
+{
+    // 阴影遮罩贴图的光照衰减值，默认为 1
+    float baked = GetBakedShadow(global.shadowMask);
+
+    // 如果是 always shadowmask 模式
+    if (global.shadowMask.always)
+    {
+        // 使用级联强度系数进行约束
+        shadow = lerp(1.0, shadow, global.strength);
+        // 阴影遮罩贴图的光照衰减值 与 实时光照衰减 的最小值
+        shadow = min(baked, shadow);
+        // 使用阴影强度进行约束
+        return lerp(1.0, shadow, strength);
+    }
+    
+    // 如果启用了距离模式
+    if (global.shadowMask.distance)
+    {
+        // 使用级联阴影的强度，使用 级联强度系数 在 阴影遮罩贴图的光照衰减值 和 级联阴影贴图的光照衰减值 之间做插值
+        // 0 表示完全被阴影覆盖，1 表示完全没有阴影
+        shadow = lerp(baked, shadow, global.strength);
+
+        // 最后使用平行光的阴影强度在 1 和 最终的光照衰减值 之间做插值
+        return lerp(1.0, shadow, strength);
+    }
+    
+    // 没有启用则将使用实时阴影
+    return lerp(1.0, shadow, strength * global.strength);
+}
+
+// 根据采样结果，返回光照衰减值 (修正后的阴影强度)
 float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowData global, Surface surfaceWS)
 {
     #if !defined(_RECEIVE_SHADOWS)
         return 1.0;
     #endif
   
-    if (directional.strength <= 0) return 1.0;
+    float shadow;
 
-    // 法线偏移
-    float3 normalBias = surfaceWS.normal * (directional.normalBias * _CascadeData[global.cascadeIndex].y);
-        
-    // 将着色点转换到光源空间 (阴影纹理空间)
-    float4 positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex], float4(surfaceWS.position + normalBias, 1.0));
+    if (directional.strength * global.strength <= 0.0)
+    {
+        // 阴影强度组合 <= 0
+        // 如果启用了距离模式，不使用实时阴影，直接返回烘焙贴图上的衰减值
+        shadow = GetBakedShadow(global.shadowMask, abs(directional.strength));
+    }
+    else
+    {
+        // 阴影强度组合 > 0
+        // 获取实时级联阴影贴图的光照衰减值
+        shadow = GetCascadeShadow(directional, global, surfaceWS);
+        // 混合阴影遮罩贴图和实时阴影贴图的光照衰减值
+        shadow = MixBakedAndRealtimeShadows(global, shadow, directional.strength);
+    }
 
-    // 采样结果表示有多少光到达了着色点：0 表示完全被阴影覆盖，1 表示完全没有阴影
-    float result = FilterDirectionalShadow(positionSTS.xyz);
-        
-    return lerp(1.0, result, directional.strength);
+    return shadow;
 }
+
 
 #endif

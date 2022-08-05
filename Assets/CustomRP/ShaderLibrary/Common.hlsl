@@ -16,7 +16,7 @@
 #define UNITY_MATRIX_VP unity_MatrixVP              // View-Projection
 #define UNITY_MATRIX_P glstate_matrix_projection    // 变换信息
 
-#if defined(_SHADOW_MASK_DISTANCE)
+#if defined(_SHADOW_MASK_ALWAYS) || defined(_SHADOW_MASK_DISTANCE)
     #define SHADOWS_SHADOWMASK
 #endif
 

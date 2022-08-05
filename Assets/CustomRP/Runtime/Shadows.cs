@@ -16,7 +16,8 @@ public class Shadows  // 在 Lighting 实例化并持有
 
     private static string[] _shadowMaskKeywords =
     {
-        "_SHADOW_MASK_DISTANCE"     // 判断是否使用 ShadowMask
+        "_SHADOW_MASK_ALWAYS",      // 使用 ShadowMask 模式
+        "_SHADOW_MASK_DISTANCE"     // 使用 ShadowMask Distance 模式
     };
 
     private static string[] _directionalFilterKeywords =
@@ -97,18 +98,24 @@ public class Shadows  // 在 Lighting 实例化并持有
         // 如果当前的平行投影灯数量没有到达上限
         // 且光源的阴影模式不为 None
         // 且光源阴影强度不为 0
-        // 获取光源的剔除结果，如果在最大阴影距离内没有可被投射的物体，则忽略此光源
         if (_shadowedDirectionalLightCount < MAXShadowedDirectionalLightCount &&
             light.shadows != LightShadows.None &&   
-            light.shadowStrength > 0f &&
-            _cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+            light.shadowStrength > 0f)
         {
             LightBakingOutput lightBaking = light.bakingOutput;
+            
             // 如果灯光的烘焙类型为 Mixed，且混合光照模式为 ShadowMask
             if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
                 lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
             {
                 _useShadowMask = true;  // 启用 ShadowMask
+            }
+            
+            // 获取光源的剔除结果，如果在最大阴影距离内没有可被投射的物体，则取负的阴影强度，关闭实时级联阴影和 Bias
+            if (!_cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+            {
+                // 阴影强度取负值，配合着色过程的判断，不启用实时阴影，但能保留烘焙阴影
+                return new Vector3(-light.shadowStrength, 0f, 0f);
             }
             
             // 将灯光存入数组，作为平行投影光
@@ -145,7 +152,8 @@ public class Shadows  // 在 Lighting 实例化并持有
         }
         
         _buffer.BeginSample(BufferName);
-        SetKeywords(_shadowMaskKeywords, _useShadowMask ? 0 : 1);
+        SetKeywords(_shadowMaskKeywords,
+            _useShadowMask ? QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1 : -1);
         _buffer.EndSample(BufferName);
         ExecuteBuffer();
     }
