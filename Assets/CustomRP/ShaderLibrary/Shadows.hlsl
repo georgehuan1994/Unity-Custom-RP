@@ -55,6 +55,7 @@ struct DirectionalShadowData
     float strength;
     int tileIndex;
     float normalBias;
+    int shadowMaskChannel;
 };
 
 
@@ -158,7 +159,7 @@ float GetCascadeShadow(DirectionalShadowData directional, ShadowData global, Sur
 }
 
 // 获取阴影遮罩贴图中的光照衰减值
-float GetBakedShadow(ShadowMask mask)
+float GetBakedShadow(ShadowMask mask, int channel)
 {
     // 0 表示完全被阴影覆盖，1 表示完全没有阴影
     // 0 表示完全没有光照，1 表示光照不受影响
@@ -167,7 +168,10 @@ float GetBakedShadow(ShadowMask mask)
     // 如果启用了距离模式，使用 r 通道作为光照衰减值
     if (mask.always || mask.distance)
     {
-        shadow = mask.shadows.r;
+        if (channel >= 0)
+        {
+            shadow = mask.shadows[channel];
+        }
     }
     
     // 没有启用则返回 1
@@ -175,13 +179,13 @@ float GetBakedShadow(ShadowMask mask)
 }
 
 // 获取阴影遮罩贴图中的光照衰减值
-float GetBakedShadow(ShadowMask mask, float strength)
+float GetBakedShadow(ShadowMask mask, int channel, float strength)
 {
     // 如果启用了距离模式，使用 r 通道作为光照衰减值
     if (mask.always || mask.distance)
     {
         // 并使用平行光的阴影强度在 1 和 光照衰减值 之间做插值
-        return lerp(1.0, GetBakedShadow(mask), strength);
+        return lerp(1.0, GetBakedShadow(mask, channel), strength);
     }
     
     // 没有启用则返回 1
@@ -189,10 +193,10 @@ float GetBakedShadow(ShadowMask mask, float strength)
 }
 
 // 混合阴影遮罩贴图和实时阴影贴图的光照衰减值
-float MixBakedAndRealtimeShadows(ShadowData global, float shadow, float strength)
+float MixBakedAndRealtimeShadows(ShadowData global, float shadow, int channel, float strength)
 {
     // 阴影遮罩贴图的光照衰减值，默认为 1
-    float baked = GetBakedShadow(global.shadowMask);
+    float baked = GetBakedShadow(global.shadowMask, channel);
 
     // 如果是 always shadowmask 模式
     if (global.shadowMask.always)
@@ -233,7 +237,7 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowD
     {
         // 阴影强度组合 <= 0
         // 如果启用了距离模式，不使用实时阴影，直接返回烘焙贴图上的衰减值
-        shadow = GetBakedShadow(global.shadowMask, abs(directional.strength));
+        shadow = GetBakedShadow(global.shadowMask, directional.shadowMaskChannel,abs(directional.strength));
     }
     else
     {
@@ -241,7 +245,7 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowD
         // 获取实时级联阴影贴图的光照衰减值
         shadow = GetCascadeShadow(directional, global, surfaceWS);
         // 混合阴影遮罩贴图和实时阴影贴图的光照衰减值
-        shadow = MixBakedAndRealtimeShadows(global, shadow, directional.strength);
+        shadow = MixBakedAndRealtimeShadows(global, shadow, directional.shadowMaskChannel, directional.strength);
     }
 
     return shadow;

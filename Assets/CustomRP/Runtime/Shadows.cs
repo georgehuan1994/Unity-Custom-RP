@@ -92,8 +92,8 @@ public class Shadows  // 在 Lighting 实例化并持有
     /// </summary>
     /// <param name="light">灯光</param>
     /// <param name="visibleLightIndex">索引</param>
-    /// <returns>x-阴影强度，y-阴影偏移，z-法线偏差</returns>
-    public Vector3 ReserveDirectionalShadows(Light light, int visibleLightIndex)
+    /// <returns>x-阴影强度，y-阴影偏移，z-法线偏差，w-阴影遮罩通道</returns>
+    public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         // 如果当前的平行投影灯数量没有到达上限
         // 且光源的阴影模式不为 None
@@ -102,6 +102,8 @@ public class Shadows  // 在 Lighting 实例化并持有
             light.shadows != LightShadows.None &&   
             light.shadowStrength > 0f)
         {
+            float maskChannel = -1;
+            
             LightBakingOutput lightBaking = light.bakingOutput;
             
             // 如果灯光的烘焙类型为 Mixed，且混合光照模式为 ShadowMask
@@ -109,13 +111,14 @@ public class Shadows  // 在 Lighting 实例化并持有
                 lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
             {
                 _useShadowMask = true;  // 启用 ShadowMask
+                maskChannel = lightBaking.occlusionMaskChannel;
             }
             
             // 获取光源的剔除结果，如果在最大阴影距离内没有可被投射的物体，则取负的阴影强度，关闭实时级联阴影和 Bias
             if (!_cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
             {
                 // 阴影强度取负值，配合着色过程的判断，不启用实时阴影，但能保留烘焙阴影
-                return new Vector3(-light.shadowStrength, 0f, 0f);
+                return new Vector4(-light.shadowStrength, 0f, 0f, maskChannel);
             }
             
             // 将灯光存入数组，作为平行投影光
@@ -127,12 +130,14 @@ public class Shadows  // 在 Lighting 实例化并持有
                     nearPlaneOffset = light.shadowNearPlane
                 };
             
-            return new Vector3(
+            return new Vector4(
                 light.shadowStrength, 
                 _settings.directional.cascadeCount * _shadowedDirectionalLightCount++,
-                light.shadowNormalBias);
+                light.shadowNormalBias,
+                maskChannel);
         }
-        return Vector3.zero;
+
+        return new Vector4(0, 0, 0, -1);
     }
     
     /// <summary>
