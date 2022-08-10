@@ -2,6 +2,7 @@
 #define CUSTOM_GI_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 
 #if defined(LIGHTMAP_ON)
     #define GI_ATTRIBUTE_DATA float2 lightMapUV : TEXCOORD1;
@@ -22,11 +23,15 @@ TEXTURE2D(unity_ShadowMask);                    // 阴影贴图
 SAMPLER(samplerunity_ShadowMask);               // 采样器
 
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);           // 3D float texture
-SAMPLER(samplerunity_ProbeVolumeSH);            
+SAMPLER(samplerunity_ProbeVolumeSH);
+
+TEXTURECUBE(unity_SpecCube0);                   // 天空盒 cubemap
+SAMPLER(samplerunity_SpecCube0);
 
 struct GI
 {
     float3 diffuse;
+    float3 specular;
     ShadowMask shadowMask;
 };
 
@@ -99,16 +104,28 @@ float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS)
         }
         else
         {
-            return unity_ProbesOcclusion; 
+            return unity_ProbesOcclusion;
         }       
     #endif
 }
 
+// 采样天空盒
+float3 SampleEnvironment(Surface surfaceWS, BRDF brdf)
+{
+    // 使用 3D 纹理坐标对 Cubemap 进行采样
+    // 使用反射光方向作为 uvw
+    float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
+    float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
+    float3 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
+    return environment.rgb;
+}
+
 // 给定 光照贴图 uv，获取 GI 结构
-GI GetGI(float2 lightMapUV, Surface surfaceWS)
+GI GetGI(float2 lightMapUV, Surface surfaceWS, BRDF brdf)
 {
     GI gi;
     gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+    gi.specular = SampleEnvironment(surfaceWS, brdf);
     gi.shadowMask.always = false;
     gi.shadowMask.distance = false;
     gi.shadowMask.shadows = 1.0;

@@ -51,6 +51,7 @@ Shader "Custom RP/Lit"
             #pragma multi_compile_instancing    // GPU Instancing 指令：生成两个变体：一个支持 GPU 实例化，一个不支持
             #pragma vertex LitPassVertex        // Lit Pass 顶点着色器
             #pragma fragment LitPassFragment    // Lit Pass 片元着色器
+            #pragma multi_compile _ LOD_FADE_CROSSFADE	// LOD 淡入淡出
             #include "LitPass.hlsl"
             ENDHLSL
         }
@@ -68,6 +69,7 @@ Shader "Custom RP/Lit"
             #pragma multi_compile_instancing
             #pragma vertex ShadowCasterPassVertex        // ShadowCaster Pass 顶点着色器
             #pragma fragment ShadowCasterPassFragment    // ShadowCaster Pass 片元着色器
+            #pragma multi_compile _ LOD_FADE_CROSSFADE	 // LOD 淡入淡出
             #include "ShadowCasterPass.hlsl"
             ENDHLSL
         }

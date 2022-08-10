@@ -10,6 +10,8 @@ struct BRDF
     float3 diffuse;     // 漫反射颜色
     float3 specular;    // 高光反射颜色
     float roughness;    // 粗糙度
+    float perceptualRoughness;  // 感官粗糙度
+    float fresnel;      // 菲涅尔反射系数
 };
 
 // 最小反射率
@@ -45,9 +47,14 @@ BRDF GetBRDF(Surface surface, bool applyAlphaToDiffuse = false)
     brdf.specular = lerp(MIN_REFLECTIVITY, surface.color, surface.metallic);
 
     // 迪士尼 BDRF 光照模型 roughness = pow((1.0 - surface.metallic), 2);
-    float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
-    brdf.roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+    // float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
+    // brdf.roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
     
+    brdf.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
+    brdf.roughness = PerceptualRoughnessToRoughness(brdf.perceptualRoughness);
+
+    // 菲涅尔
+    brdf.fresnel = saturate(surface.smoothness + 1.0 - oneMinusReflectivity);
     return brdf;
 }
 
@@ -63,10 +70,20 @@ float SpecularStrength(Surface surface, BRDF brdf, Light light)
     return r2 / (d2 * max(0.1, lh2) * normalization);
 }
 
-// 获取平行光的 BRDF (漫反射 + 高光反射) 颜色值
+// 平行光的 BRDF (漫反射 + 高光反射) 颜色值
 float3 DirectBRDF(Surface surface, BRDF brdf, Light light)
 {
     return brdf.diffuse + SpecularStrength(surface, brdf, light) * brdf.specular;
+}
+
+// 间接光的 BRDF
+float3 IndirectBRDF(Surface surface, BRDF brdf, float3 diffuse, float3 specular)
+{
+    float fresnelStrength = Pow4(1.0 - saturate(dot(surface.normal, surface.viewDirection)));
+    float reflection = specular * brdf.specular;
+    // 使用粗糙度散射这些反射，除以粗糙度的二次方，加 1 是为了防止分母为 0
+    reflection /= brdf.roughness * brdf.roughness + 1.0;
+    return diffuse * brdf.diffuse + reflection;
 }
 
 #endif

@@ -108,7 +108,8 @@ public partial class CameraRenderer
             enableInstancing = useGPUInstancing,
             perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                             PerObjectData.LightProbe | PerObjectData.OcclusionProbe | 
-                            PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume
+                            PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume |
+                            PerObjectData.ReflectionProbes
         };
         
         // Custom Lit Pass

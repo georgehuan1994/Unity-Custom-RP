@@ -60,6 +60,8 @@ void ShadowCasterPassFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
 
+    ClipLOD(input.positionCS.xy, unity_LODFade.x);
+
     // 使用采样器 sampler_BaseMap，从 _BaseMap 中采样
     // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
     // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
