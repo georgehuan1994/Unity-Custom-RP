@@ -116,8 +116,9 @@ float3 SampleEnvironment(Surface surfaceWS, BRDF brdf)
     // 使用反射光方向作为 uvw
     float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
     float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
-    float3 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
-    return environment.rgb;
+    float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
+    // return environment.rgb;
+    return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
 
 // 给定 光照贴图 uv，获取 GI 结构

@@ -87,6 +87,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET
     // surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
     surface.metallic = GetMetallic(input.baseUV);
     surface.smoothness = GetSmoothness(input.baseUV);
+    surface.fresnelStrength = GetFresnel(input.baseUV);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
 
     #if defined(_PREMULTIPLY_ALPHA)

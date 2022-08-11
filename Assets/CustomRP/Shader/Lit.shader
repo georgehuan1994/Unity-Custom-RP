@@ -7,6 +7,7 @@ Shader "Custom RP/Lit"
     	
         _Metallic("Metallic", Range(0,1)) = 0
         _Smoothness("Smoothness", Range(0,1)) = 0.5
+    	_Fresnel ("Fresnel", Range(0, 1)) = 1
     	
         [Toggle(_PREMULTIPLY_ALPHA)] _Premultiply_Alpha("PreMultiply Alpha", Float) = 0
         [Toggle(_CLIPPING)] _Clipping("Alpha Clipping", Float) = 0

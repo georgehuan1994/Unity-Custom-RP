@@ -35,12 +35,13 @@ Material:
     - _Clipping: 0
     - _Cutoff: 0.5
     - _DstBlend: 0
+    - _Fresnel: 1
     - _Metallic: 0
     - _PREMULTIPLY_ALPHA: 0
     - _Premultiply_Alpha: 0
     - _ReceiveShadows: 1
     - _Shadows: 0
-    - _Smoothness: 0.7
+    - _Smoothness: 1
     - _SrcBlend: 1
     - _ZWrite: 1
     m_Colors:
