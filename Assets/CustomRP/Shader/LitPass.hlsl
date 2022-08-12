@@ -25,6 +25,7 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float3 normalWS : VAR_NORMAL;   // VAR_NORMAL 没有特别的语义，只是一个自定义的标识
     float2 baseUV : VAR_BASE_UV;    // VAR_BASE_UV 没有特别的语义，只是一个自定义的标识
+    float2 detailUV : VAR_DETAIL_UV;
     GI_ATTRIBUTE_DATA
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输出结构中
 };
@@ -44,9 +45,8 @@ Varyings LitPassVertex (Attributes input)
     output.positionCS = TransformWorldToHClip(output.positionWS);
 
     // 访问实例化常量缓冲区中的每个实例着色器属性
-    // float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
-    // output.baseUV = input.baseUV * baseST.xy + baseST.zw;
     output.baseUV = TransformBaseUV(input.baseUV);
+    output.detailUV = TransformDetailUV(input.baseUV);
     
     // 将法线坐标转换到世界空间下
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -59,22 +59,11 @@ float4 LitPassFragment (Varyings input) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(input);
     ClipLOD(input.positionCS.xy, unity_LODFade.x);
     
-    // 使用采样器 sampler_BaseMap，从 _BaseMap 中采样
-    // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
-    // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
-    // float4 base = baseMap * baseColor;
-    float4 base = GetBase(input.baseUV);
+    float4 base = GetBase(input.baseUV, input.detailUV);
     
     #if defined(_CLIPPING)
-    // clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
     clip(base.a - GetCutoff(input.baseUV));
     #endif
-    
-    // base.rgb = input.normalWS;
-    // base.rgb = abs(length(input.normalWS) - 1.0) * 10.0; // 没有归一化
-    // base.rgb = normalize(input.normalWS);
-    // base.rgb = abs(length(normalize(input.normalWS)) - 1.0) * 10.0; // 纯黑色
-    // return base;
     
     Surface surface;
     surface.position = input.positionWS;
@@ -83,10 +72,9 @@ float4 LitPassFragment (Varyings input) : SV_TARGET
     surface.depth = -TransformWorldToView(input.positionWS).z;
     surface.color = base.rgb;
     surface.alpha = base.a;
-    // surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
-    // surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
     surface.metallic = GetMetallic(input.baseUV);
-    surface.smoothness = GetSmoothness(input.baseUV);
+    surface.occlusion = GetOcclusion(input.baseUV);
+    surface.smoothness = GetSmoothness(input.baseUV, input.detailUV);
     surface.fresnelStrength = GetFresnel(input.baseUV);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
 

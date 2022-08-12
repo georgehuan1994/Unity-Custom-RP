@@ -85,7 +85,8 @@ float3 IndirectBRDF(Surface surface, BRDF brdf, float3 diffuse, float3 specular)
     float reflection = specular * lerp(brdf.specular, brdf.fresnel, fresnelStrength);
     // 使用粗糙度散射这些反射，除以粗糙度的二次方，加 1 是为了防止分母为 0
     reflection /= brdf.roughness * brdf.roughness + 1.0;
-    return diffuse * brdf.diffuse + reflection;
+    
+    return (diffuse * brdf.diffuse + reflection) * surface.occlusion;
 }
 
 #endif

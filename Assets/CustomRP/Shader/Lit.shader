@@ -5,7 +5,9 @@ Shader "Custom RP/Lit"
         _BaseColor("Color", Color) = (0.5,0.5,0.5,1)
         _BaseMap("Texture", 2D) = "white" {}
     	
+    	[NoScaleOffset] _MaskMap("MODS", 2D) = "white" {}
         _Metallic("Metallic", Range(0,1)) = 0
+    	_Occlusion("Occlusion", Range(0,1)) = 1
         _Smoothness("Smoothness", Range(0,1)) = 0.5
     	_Fresnel ("Fresnel", Range(0, 1)) = 1
     	
@@ -15,6 +17,10 @@ Shader "Custom RP/Lit"
     	
     	[NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0.0, 0.0, 0.0, 0.0)
+    	
+    	_DetailMap("Detail", 2D) = "linearGrey" {}	// 默认的 linearGrey 是一张 (0.5, 0.5, 0.5) 的纹理
+    	_DetailAlbedo("Detail Albedo", Range(0,1)) = 1
+    	_DetailSmoothness("Detail Smoothness", Range(0,1)) = 1
     	
         [Enum(UnityEngine.Rendering.BlendMode)]_SrcBlend("Src Blend", Float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)]_DstBlend("Dst Blend", Float) = 0
