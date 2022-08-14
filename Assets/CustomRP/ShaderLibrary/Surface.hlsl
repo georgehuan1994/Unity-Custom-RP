@@ -7,6 +7,7 @@ struct Surface
 {
     float3 position;
     float3 normal;
+    float3 interpolateNormal;
     float3 viewDirection;
     float depth;    // 视图空间深度
     float3 color;

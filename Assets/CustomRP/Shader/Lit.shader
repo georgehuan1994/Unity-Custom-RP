@@ -11,6 +11,9 @@ Shader "Custom RP/Lit"
         _Smoothness("Smoothness", Range(0,1)) = 0.5
     	_Fresnel ("Fresnel", Range(0, 1)) = 1
     	
+    	[NoScaleOffset] _NormalMap("Normals", 2D) = "bump" {}
+    	_NormalScale("Normal Scale", Range(0,1)) = 1
+        
         [Toggle(_PREMULTIPLY_ALPHA)] _Premultiply_Alpha("PreMultiply Alpha", Float) = 0
         [Toggle(_CLIPPING)] _Clipping("Alpha Clipping", Float) = 0
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -18,9 +21,11 @@ Shader "Custom RP/Lit"
     	[NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0.0, 0.0, 0.0, 0.0)
     	
-    	_DetailMap("Detail", 2D) = "linearGrey" {}	// 默认的 linearGrey 是一张 (0.5, 0.5, 0.5) 的纹理
+    	_DetailMap("Detail", 2D) = "linearGrey" {}	// linearGrey 是一张 (0.5, 0.5, 0.5) 的纹理
+    	[NoScaleOffset] _DetailNormalMap("Detail Normals", 2D) = "bump" {}
     	_DetailAlbedo("Detail Albedo", Range(0,1)) = 1
     	_DetailSmoothness("Detail Smoothness", Range(0,1)) = 1
+    	_DetailNormalScale("Detail Normal Scale", Range(0,1)) = 1
     	
         [Enum(UnityEngine.Rendering.BlendMode)]_SrcBlend("Src Blend", Float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)]_DstBlend("Dst Blend", Float) = 0

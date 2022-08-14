@@ -10,6 +10,9 @@ TEXTURE2D(_EmissionMap);    // 自发光纹理
 TEXTURE2D(_DetailMap);      // 细节纹理
 SAMPLER(sampler_DetailMap);
 
+TEXTURE2D(_NormalMap);      // 法线纹理
+TEXTURE2D(_DetailNormalMap);
+
 // 将属性放入常量缓冲区，并定义名为 "UnityPerMaterial" 的 buffer，优先使用 SRP Batch，然后是 GPU 实例
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
     // 定义具有指定类型和名称的每实例着色器属性
@@ -24,6 +27,8 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
     UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
     UNITY_DEFINE_INSTANCED_PROP(float, _DetailAlbedo)
     UNITY_DEFINE_INSTANCED_PROP(float, _DetailSmoothness)
+    UNITY_DEFINE_INSTANCED_PROP(float, _DetailNormalScale)
+    UNITY_DEFINE_INSTANCED_PROP(float, _NormalScale)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
@@ -86,12 +91,14 @@ float GetMetallic(float2 baseUV)
 
 float GetSmoothness(float2 baseUV, float2 detailUV = 0.0)
 {
-    // base mods 光滑度
+    // mods 平滑度
     float smoothness = INPUT_PROP(_Smoothness);
+    // mods 纹理 a 通道中储存的平滑度
     smoothness *= GetMask(baseUV).a;
 
-    // detail 光滑度
+    // detail 平滑度
     float detail = GetDetail(detailUV).b * INPUT_PROP(_DetailSmoothness);
+    // mods 纹理 b 通道中储存的遮罩值
     float mask = GetMask(baseUV).b;
     smoothness = lerp(smoothness, detail < 0.0 ? 0.0 : 1.0, abs(detail) * mask);
     
@@ -115,6 +122,21 @@ float2 TransformDetailUV(float2 detailUV)
 float GetFresnel(float2 baseUV)
 {
     return INPUT_PROP(_Fresnel);
+}
+
+float3 GetNormalTS(float2 baseUV, float2 detailUV = 0.0)
+{
+    float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_BaseMap, baseUV);
+    float scale = INPUT_PROP(_NormalScale);
+    float3 normal = DecodeNormal(map, scale);
+
+    map = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailMap, detailUV);
+    float mask = GetMask(baseUV).b;
+    scale = INPUT_PROP(_DetailNormalScale) * mask;
+    float3 detail = DecodeNormal(map, scale);
+    normal = BlendNormal(normal, detail);
+    
+    return normal;
 }
 
 #endif

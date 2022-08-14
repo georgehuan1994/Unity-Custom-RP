@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom RP_Lit_MODS_Detail
+  m_Name: Custom RP_Lit_MODS_Plane
   m_Shader: {fileID: 4800000, guid: 50a1c8295e1661242b60a83032adcd3f, type: 3}
   m_ShaderKeywords: _RECEIVE_SHADOWS
   m_LightmapFlags: 4
@@ -21,11 +21,15 @@ Material:
     m_TexEnvs:
     - _BaseMap:
         m_Texture: {fileID: 2800000, guid: 080ad2d93b81aeb49a4b75cee46dee79, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 3, y: 2}
         m_Offset: {x: 0, y: 0}
     - _DetailMap:
         m_Texture: {fileID: 2800000, guid: 97506fde95bd8884a9d07ce0a22cd7e1, type: 3}
         m_Scale: {x: 3, y: 3}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 2800000, guid: b69a659bc2f6a1a4c898b409e377c470, type: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 2800000, guid: 2c32509641f98de4ea69076a44f8cc3e, type: 3}
@@ -40,13 +44,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 45e1ed66e6382584e8762d120f65dfd8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Clipping: 0
     - _Cutoff: 0.5
     - _DetailAlbedo: 0.2
+    - _DetailNormalScale: 0.8
     - _DetailSmoothness: 1
     - _DstBlend: 0
     - _Fresnel: 0.2
@@ -63,5 +68,5 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 1, g: 1, b: 1, a: 0}
+    - _EmissionColor: {r: 0, g: 1.254902, b: 16, a: 0}
   m_BuildTextureStacks: []

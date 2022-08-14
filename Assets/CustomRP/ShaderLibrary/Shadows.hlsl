@@ -140,7 +140,7 @@ float FilterDirectionalShadow(float3 positionSTS)
 float GetCascadeShadow(DirectionalShadowData directional, ShadowData global, Surface surfaceWS)
 {
     // 法线偏移
-    float3 normalBias = surfaceWS.normal * (directional.normalBias * _CascadeData[global.cascadeIndex].y);
+    float3 normalBias = surfaceWS.interpolateNormal * (directional.normalBias * _CascadeData[global.cascadeIndex].y);
 
     // 将着色点转换到光源空间 (阴影纹理空间)
     float3 positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex], float4(surfaceWS.position + normalBias, 1.0)).xyz;
@@ -150,7 +150,7 @@ float GetCascadeShadow(DirectionalShadowData directional, ShadowData global, Sur
 
     if (global.cascadeBlend < 1.0)
     {
-        normalBias = surfaceWS.normal * (directional.normalBias * _CascadeData[global.cascadeIndex + 1].y);
+        normalBias = surfaceWS.interpolateNormal * (directional.normalBias * _CascadeData[global.cascadeIndex + 1].y);
         positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex + 1], float4(surfaceWS.position + normalBias, 1.0)).xyz;
         result = lerp(FilterDirectionalShadow(positionSTS), result, global.cascadeBlend);
     }
