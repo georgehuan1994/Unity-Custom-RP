@@ -50,7 +50,7 @@ Varyings LitPassVertex (Attributes input)
     output.baseUV = TransformBaseUV(input.baseUV);
     output.detailUV = TransformDetailUV(input.baseUV);
     
-    // 将法线坐标转换到世界空间下
+    // 将顶点法线转换到世界空间下
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 
     // 获取着色点在世界空间下归一化的切线方向
