@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Custom RP_Lit_MODS_Compeled
   m_Shader: {fileID: 4800000, guid: 50a1c8295e1661242b60a83032adcd3f, type: 3}
-  m_ShaderKeywords: _RECEIVE_SHADOWS
+  m_ShaderKeywords: _DETAIL_MAP _MASK_MAP _NORMAL_MAP _RECEIVE_SHADOWS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -51,11 +51,14 @@ Material:
     - _Clipping: 0
     - _Cutoff: 0.5
     - _DetailAlbedo: 0.2
+    - _DetailMapToggle: 1
     - _DetailNormalScale: 0.8
     - _DetailSmoothness: 1
     - _DstBlend: 0
     - _Fresnel: 0.2
+    - _MaskMapToggle: 1
     - _Metallic: 0.5
+    - _NormalMapToggle: 1
     - _NormalScale: 1
     - _Occlusion: 0.5
     - _PREMULTIPLY_ALPHA: 0

@@ -5,12 +5,14 @@ Shader "Custom RP/Lit"
         _BaseColor("Color", Color) = (0.5,0.5,0.5,1)
         _BaseMap("Texture", 2D) = "white" {}
     	
+    	[Toggle(_MASK_MAP)] _MaskMapToggle ("Mask Map", Float) = 0
     	[NoScaleOffset] _MaskMap("MODS", 2D) = "white" {}
         _Metallic("Metallic", Range(0,1)) = 0
     	_Occlusion("Occlusion", Range(0,1)) = 1
         _Smoothness("Smoothness", Range(0,1)) = 0.5
     	_Fresnel ("Fresnel", Range(0, 1)) = 1
     	
+    	[Toggle(_NORMAL_MAP)] _NormalMapToggle ("Normal Map", Float) = 0
     	[NoScaleOffset] _NormalMap("Normals", 2D) = "bump" {}
     	_NormalScale("Normal Scale", Range(0,1)) = 1
         
@@ -21,6 +23,7 @@ Shader "Custom RP/Lit"
     	[NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0.0, 0.0, 0.0, 0.0)
     	
+    	[Toggle(_DETAIL_MAP)] _DetailMapToggle ("Detail Maps", Float) = 0
     	_DetailMap("Detail", 2D) = "linearGrey" {}	// linearGrey 是一张 (0.5, 0.5, 0.5) 的纹理
     	[NoScaleOffset] _DetailNormalMap("Detail Normals", 2D) = "bump" {}
     	_DetailAlbedo("Detail Albedo", Range(0,1)) = 1
@@ -64,6 +67,9 @@ Shader "Custom RP/Lit"
             #pragma vertex LitPassVertex        // Lit Pass 顶点着色器
             #pragma fragment LitPassFragment    // Lit Pass 片元着色器
             #pragma multi_compile _ LOD_FADE_CROSSFADE	// LOD 淡入淡出
+            #pragma shader_feature _NORMAL_MAP	// 是否使用法线纹理
+            #pragma shader_feature _MASK_MAP	// 是否使用MOSD纹理
+            #pragma shader_feature _DETAIL_MAP	// 是否使用细节纹理
             #include "LitPass.hlsl"
             ENDHLSL
         }

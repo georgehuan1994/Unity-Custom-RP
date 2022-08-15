@@ -33,9 +33,27 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
 
-float3 GetEmission(float2 baseUV)
+struct InputConfig
 {
-    float4 map = SAMPLE_TEXTURE2D(_EmissionMap, sampler_BaseMap, baseUV);
+    float2 baseUV;
+    float2 detailUV;
+    bool useMask;
+    bool useDetail;
+};
+
+InputConfig GetInputConfig(float2 baseUV, float2 detailUV = 0.0)
+{
+    InputConfig config;
+    config.baseUV = baseUV;
+    config.detailUV = detailUV;
+    config.useMask = false;
+    config.useDetail = false;
+    return config;
+}
+
+float3 GetEmission(InputConfig config)
+{
+    float4 map = SAMPLE_TEXTURE2D(_EmissionMap, sampler_BaseMap, config.baseUV);
     float4 color = INPUT_PROP(_EmissionColor);
     return map.rgb * color.rgb;
 }
@@ -46,69 +64,83 @@ float2 TransformBaseUV(float2 baseUV)
     return baseUV * baseST.xy + baseST.zw;
 }
 
-float4 GetDetail(float2 detailUV)
+float4 GetDetail(InputConfig config)
 {
-    float4 map = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, detailUV);
-    // 从 [0,1] 映射到 [-1,1]
-    return map * 2.0 - 1.0;
+    if (config.useDetail)
+    {
+        float4 map = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, config.detailUV);
+        // 从 [0,1] 映射到 [-1,1]
+        return map * 2.0 - 1.0;
+    }
+    return 0.0;
 }
 
-float4 GetMask(float2 baseUV)
+float4 GetMask(InputConfig config)
 {
-    return SAMPLE_TEXTURE2D(_MaskMap, sampler_BaseMap, baseUV);
+    if (config.useMask)
+    {
+        return SAMPLE_TEXTURE2D(_MaskMap, sampler_BaseMap, config.baseUV);
+    }
+    return 1.0;
 }
 
-float4 GetBase(float2 baseUV, float2 detailUV = 0.0)
+float4 GetBase(InputConfig config)
 {
-    float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUV);
+    float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, config.baseUV);
     float4 color = INPUT_PROP(_BaseColor);
 
-    // 细节纹理 r 通道中储存 albedo 值，从 [0,1] 映射到 [-1,1]
-    float detail = GetDetail(detailUV).r * INPUT_PROP(_DetailAlbedo);
-    // mods 纹理 b 通道中储存遮罩值
-    float mask = GetMask(baseUV).b;
+    if (config.useDetail)
+    {
+        // 细节纹理 r 通道中储存 albedo 值，从 [0,1] 映射到 [-1,1]
+        float detail = GetDetail(config).r * INPUT_PROP(_DetailAlbedo);
+        // mods 纹理 b 通道中储存遮罩值
+        float mask = GetMask(config).b;
     
-    // 如果该值小于 0，则在 base 颜色 和 黑色之间插值，降低亮度
-    // 如果该值大于 0，则在 base 颜色 和 白色之间插值，提升亮度
-    // 在 gamma 空间中进行插值能更好的匹配视觉灰度分布，所以先开方，然后再平方回来
-    map.rgb = lerp(sqrt(map.rgb), detail < 0.0 ? 0.0 : 1.0, abs(detail) * mask);
-    map.rgb *= map.rgb;
+        // 如果该值小于 0，则在 base 颜色 和 黑色之间插值，降低亮度
+        // 如果该值大于 0，则在 base 颜色 和 白色之间插值，提升亮度
+        // 在 gamma 空间中进行插值能更好的匹配视觉灰度分布，所以先开方，然后再平方回来
+        map.rgb = lerp(sqrt(map.rgb), detail < 0.0 ? 0.0 : 1.0, abs(detail) * mask);
+        map.rgb *= map.rgb;
+    }
     
     return map * color;
 }
 
-float GetCutoff(float2 baseUV)
+float GetCutoff(InputConfig config)
 {
     return INPUT_PROP(_Cutoff);
 }
 
-float GetMetallic(float2 baseUV)
+float GetMetallic(InputConfig config)
 {
     float metallic = INPUT_PROP(_Metallic);
-    metallic *= GetMask(baseUV).r;
+    metallic *= GetMask(config).r;
     return metallic;
 }
 
-float GetSmoothness(float2 baseUV, float2 detailUV = 0.0)
+float GetSmoothness(InputConfig config)
 {
     // mods 平滑度
     float smoothness = INPUT_PROP(_Smoothness);
     // mods 纹理 a 通道中储存的平滑度
-    smoothness *= GetMask(baseUV).a;
-
-    // detail 平滑度
-    float detail = GetDetail(detailUV).b * INPUT_PROP(_DetailSmoothness);
-    // mods 纹理 b 通道中储存的遮罩值
-    float mask = GetMask(baseUV).b;
-    smoothness = lerp(smoothness, detail < 0.0 ? 0.0 : 1.0, abs(detail) * mask);
+    smoothness *= GetMask(config).a;
+    
+    if (config.useDetail)
+    {
+        // detail 平滑度
+        float detail = GetDetail(config).b * INPUT_PROP(_DetailSmoothness);
+        // mods 纹理 b 通道中储存的遮罩值
+        float mask = GetMask(config).b;
+        smoothness = lerp(smoothness, detail < 0.0 ? 0.0 : 1.0, abs(detail) * mask);
+    }
     
     return smoothness;
 }
 
-float GetOcclusion(float2 baseUV)
+float GetOcclusion(InputConfig config)
 {
     float strength = INPUT_PROP(_Occlusion);
-    float occlusion = GetMask(baseUV).g;
+    float occlusion = GetMask(config).g;
     occlusion = lerp(occlusion, 1.0, strength);
     return occlusion;
 }
@@ -119,22 +151,25 @@ float2 TransformDetailUV(float2 detailUV)
     return detailUV * detailST.xy + detailST.zw;
 }
 
-float GetFresnel(float2 baseUV)
+float GetFresnel(InputConfig config)
 {
     return INPUT_PROP(_Fresnel);
 }
 
-float3 GetNormalTS(float2 baseUV, float2 detailUV = 0.0)
+float3 GetNormalTS(InputConfig config)
 {
-    float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_BaseMap, baseUV);
+    float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_BaseMap, config.baseUV);
     float scale = INPUT_PROP(_NormalScale);
     float3 normal = DecodeNormal(map, scale);
-
-    map = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailMap, detailUV);
-    float mask = GetMask(baseUV).b;
-    scale = INPUT_PROP(_DetailNormalScale) * mask;
-    float3 detail = DecodeNormal(map, scale);
-    normal = BlendNormal(normal, detail);
+    
+    if (config.useDetail)
+    {
+        map = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailMap, config.detailUV);
+        float mask = GetMask(config).b;
+        scale = INPUT_PROP(_DetailNormalScale) * mask;
+        float3 detail = DecodeNormal(map, scale);
+        normal = BlendNormal(normal, detail);
+    }
     
     return normal;
 }

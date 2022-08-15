@@ -42,12 +42,13 @@ Varyings MetaPassVertex (Attributes input)
 
 float4 MetaPassFragment (Varyings input) : SV_TARGET
 {
-    float4 base = GetBase(input.baseUV);
+    InputConfig config = GetInputConfig(input.baseUV);
+    float4 base = GetBase(config);
     Surface surface;
     ZERO_INITIALIZE(Surface, surface);
     surface.color = base.rgb;
-    surface.metallic = GetMetallic(input.baseUV);
-    surface.smoothness = GetSmoothness(input.baseUV);
+    surface.metallic = GetMetallic(config);
+    surface.smoothness = GetSmoothness(config);
     BRDF brdf = GetBRDF(surface);
     float4 meta = 0.0;
     if (unity_MetaFragmentControl.x)    // Global Illumination：None
@@ -58,7 +59,7 @@ float4 MetaPassFragment (Varyings input) : SV_TARGET
     }
     else if (unity_MetaFragmentControl.y)   // Global Illumination：Baked
     {
-        meta = float4(GetEmission(input.baseUV), 1.0);
+        meta = float4(GetEmission(config), 1.0);
     }
     return meta;
 }
