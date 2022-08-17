@@ -155,6 +155,7 @@ public class Lighting
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
         position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         _otherLightPositions[index] = position;
+        _otherLightSpotAngles[index] = new Vector4(0f, 1f);
     }
 
     /// <summary>
@@ -175,8 +176,7 @@ public class Lighting
         float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);
         float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
         float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
-        // _otherLightSpotAngles[index] = new Vector4(angleRangeInv, -outerCos * angleRangeInv);
-        _otherLightSpotAngles[index] = new Vector4(0f, 1f);
+        _otherLightSpotAngles[index] = new Vector4(angleRangeInv, -outerCos * angleRangeInv);
     }
 
     /// <summary>
