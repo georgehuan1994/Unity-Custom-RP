@@ -15,6 +15,7 @@ MonoBehaviour:
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatcher: 0
+  useLightsPerObject: 0
   shadowSettings:
     maxDistance: 15
     distanceFade: 0.2

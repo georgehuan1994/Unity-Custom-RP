@@ -12,6 +12,9 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     float4 unity_WorldTransformParams;
 
+    real4 unity_LightData;
+    real4 unity_LightIndices[2];
+
     // 光照探针中的遮挡数据
     float4 unity_ProbesOcclusion;
 

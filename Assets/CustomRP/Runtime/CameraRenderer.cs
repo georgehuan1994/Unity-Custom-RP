@@ -27,7 +27,10 @@ public partial class CameraRenderer
 
     private Lighting _lighting = new Lighting();
     
-    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, ShadowSettings shadowSettings)
+    public void Render(
+        ScriptableRenderContext context, Camera camera, 
+        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, 
+        ShadowSettings shadowSettings)
     {
         _context = context;
         _camera = camera;
@@ -39,12 +42,12 @@ public partial class CameraRenderer
         
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
-        _lighting.Setup(context, _cullingResults, shadowSettings);  // 灯光设置
+        _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject);  // 灯光设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置
         
-        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
+        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
         
 #if UNITY_EDITOR
         DrawUnSupportShaders();
@@ -113,7 +116,8 @@ public partial class CameraRenderer
             perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                             PerObjectData.LightProbe | PerObjectData.OcclusionProbe | 
                             PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume |
-                            PerObjectData.ReflectionProbes
+                            PerObjectData.ReflectionProbes |
+                            lightsPerObjectFlags
         };
         
         // Custom Lit Pass

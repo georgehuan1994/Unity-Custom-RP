@@ -70,6 +70,7 @@ Shader "Custom RP/Lit"
             #pragma shader_feature _NORMAL_MAP	// 是否使用法线纹理
             #pragma shader_feature _MASK_MAP	// 是否使用MOSD纹理
             #pragma shader_feature _DETAIL_MAP	// 是否使用细节纹理
+            #pragma multi_compile _ _LIGHTS_PER_OBJECT	// 是否启用每物体灯光限制
             #include "LitPass.hlsl"
             ENDHLSL
         }

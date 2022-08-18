@@ -4,8 +4,11 @@ using UnityEngine.Rendering;
 public partial class CustomRenderPipeline : RenderPipeline
 {
     private CameraRenderer _renderer = new CameraRenderer();
+    
     private bool _useDynamicBatching;
     private bool _useGPUInstancing;
+    private bool _useLightsPerObject;
+    
     private ShadowSettings _shadowSettings;
     
     /// <summary>
@@ -17,7 +20,7 @@ public partial class CustomRenderPipeline : RenderPipeline
     {
         foreach (Camera camera in cameras) 
         {
-            _renderer.Render(context, camera, _useDynamicBatching, _useGPUInstancing, _shadowSettings);
+            _renderer.Render(context, camera, _useDynamicBatching, _useGPUInstancing, _useLightsPerObject, _shadowSettings);
         }
     }
     
@@ -27,13 +30,17 @@ public partial class CustomRenderPipeline : RenderPipeline
     /// <param name="useDynamicBatching">是否使用 Dynamic Batching</param>
     /// <param name="useGPUInstancing">是否使用 GPU Instancing</param>
     /// <param name="useSRPBatcher">是否使用静态批处理</param>
-    public CustomRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher, ShadowSettings shadowSettings)
+    public CustomRenderPipeline(
+        bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher, bool userLightsPerObject,
+        ShadowSettings shadowSettings)
     {
         _useDynamicBatching = useDynamicBatching;
         _useGPUInstancing = useGPUInstancing;
         _shadowSettings = shadowSettings;
+        _useLightsPerObject = userLightsPerObject;
+        
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;
-        // InitializeForEditor();
+        InitializeForEditor();
     }
 }

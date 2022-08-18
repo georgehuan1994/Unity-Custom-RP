@@ -38,17 +38,19 @@ public class Lighting
     private static Vector4[] _otherLightDirections = new Vector4[MAXOhterLightCount];   // 聚光灯方向
     private static Vector4[] _otherLightSpotAngles = new Vector4[MAXOhterLightCount];   // 聚光灯外角
     private static Vector4[] _otherLightShadowData = new Vector4[MAXOhterLightCount];
+
+    private static string _lightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
     
     private CullingResults _cullingResults;
 
     private Shadows _shadows = new Shadows();
     
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings)
+    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings, bool useLightsPerObject)
     {
         _cullingResults = cullingResults;
         _buffer.BeginSample(BufferName);
         _shadows.Setup(context, cullingResults, shadowSettings);    // 在 SetupLight 前，先 SetupShadow
-        SetupLights();
+        SetupLights(useLightsPerObject);
         _shadows.Render();
         _buffer.EndSample(BufferName);
         
@@ -59,16 +61,20 @@ public class Lighting
     /// <summary>
     /// 设置光源信息，将光源信息发送个 GPU，Light.hlsl -> CBUFFER _CustomLight
     /// </summary>
-    private void SetupLights()
+    private void SetupLights(bool useLightsPerObject)
     {
+        NativeArray<int> indexMap = useLightsPerObject ? _cullingResults.GetLightIndexMap(Allocator.Temp) : default;
+
         // 通过剔除结果，检索所需的数据
         NativeArray<VisibleLight> visibleLights = _cullingResults.visibleLights;
         
         int dirLightCount = 0;
         int otherLightCount = 0;
+        int i;
         
-        for (int i = 0; i < visibleLights.Length; i++)
+        for (i = 0; i < visibleLights.Length; i++)
         {
+            int newIndex = -1;
             VisibleLight visibleLight = visibleLights[i];
 
             // 检查灯光类型
@@ -77,6 +83,7 @@ public class Lighting
                 case LightType.Spot:
                     if (otherLightCount < MAXOhterLightCount)
                     {
+                        newIndex = otherLightCount;
                         SetupSpotLight(otherLightCount++, ref visibleLight);
                     }
                     break;
@@ -89,6 +96,7 @@ public class Lighting
                 case LightType.Point:
                     if (otherLightCount < MAXOhterLightCount)
                     {
+                        newIndex = otherLightCount;
                         SetupPointLight(otherLightCount++, ref visibleLight);
                     }
                     break;
@@ -99,6 +107,25 @@ public class Lighting
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            if (useLightsPerObject)
+            {
+                indexMap[i] = newIndex;
+            }
+        }
+        
+        if (useLightsPerObject)
+        {
+            for (; i < indexMap.Length; i++)
+            {
+                indexMap[i] = -1;
+            }
+            _cullingResults.SetLightIndexMap(indexMap);
+            indexMap.Dispose();
+            Shader.EnableKeyword(_lightsPerObjectKeyword);
+        }
+        else
+        {
+            Shader.DisableKeyword(_lightsPerObjectKeyword);
         }
         
         _buffer.SetGlobalInt(_dirLightCountId, dirLightCount);
@@ -148,16 +175,20 @@ public class Lighting
     /// <summary>
     /// 设置点光源信息
     /// </summary>
-    /// <param name="index"></param>
-    /// <param name="visibleLight"></param>
+    /// <param name="index">索引</param>
+    /// <param name="visibleLight">可见灯光</param>
     private void SetupPointLight(int index, ref VisibleLight visibleLight)
     {
+        // 颜色 x 强度
         _otherLightColors[index] = visibleLight.finalColor;
         
-        // 在 position.w 中储存半径平方反比
+        // 位置：光源变换矩阵的第 4 列
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
+        // 在 position.w 中储存半径平方反比
         position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         _otherLightPositions[index] = position;
+        
+        // 点光源没有内外角，令内外角差值 a = 0，外角余弦反值 b = 1
         _otherLightSpotAngles[index] = new Vector4(0f, 1f);
 
         Light light = visibleLight.light;
@@ -167,17 +198,23 @@ public class Lighting
     /// <summary>
     /// 设置聚光灯信息
     /// </summary>
-    /// <param name="index"></param>
-    /// <param name="visibleLight"></param>
+    /// <param name="index">索引</param>
+    /// <param name="visibleLight">可见灯光</param>
     private void SetupSpotLight(int index, ref VisibleLight visibleLight)
     {
+        // 颜色 x 强度
         _otherLightColors[index] = visibleLight.finalColor;
 
+        // 位置：光源变换矩阵的第 4 列
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
+        // 在 position.w 中储存半径平方反比
         position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         _otherLightPositions[index] = position;
+        
+        // 朝向：光源变换矩阵的第 3 列取反
         _otherLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
 
+        // 内外角
         Light light = visibleLight.light;
         float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);
         float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
