@@ -139,6 +139,24 @@ public class Shadows  // 在 Lighting 实例化并持有
 
         return new Vector4(0, 0, 0, -1);
     }
+
+    public Vector4 ReserveOtherShadows(Light light, int visibleLightIndex)
+    {
+        if (light.shadows != LightShadows.None && light.shadowStrength > 0f)
+        {
+            LightBakingOutput lightBaking = light.bakingOutput;
+            if (light)
+            {
+                if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
+                    lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+                {
+                    _useShadowMask = true;
+                    return new Vector4(light.shadowStrength, 0f, 0f, lightBaking.occlusionMaskChannel);
+                }
+            }
+        }
+        return new Vector4(0f, 0f, 0f, -1f);
+    }
     
     /// <summary>
     /// 渲染阴影

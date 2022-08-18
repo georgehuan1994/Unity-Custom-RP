@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class CustomRenderPipeline : RenderPipeline
+public partial class CustomRenderPipeline : RenderPipeline
 {
     private CameraRenderer _renderer = new CameraRenderer();
     private bool _useDynamicBatching;
@@ -34,5 +34,6 @@ public class CustomRenderPipeline : RenderPipeline
         _shadowSettings = shadowSettings;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;
+        // InitializeForEditor();
     }
 }

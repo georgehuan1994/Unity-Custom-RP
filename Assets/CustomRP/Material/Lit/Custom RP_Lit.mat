@@ -55,9 +55,9 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothness: 1
     - _DstBlend: 0
-    - _Fresnel: 0
+    - _Fresnel: 0.2
     - _MaskMapToggle: 0
-    - _Metallic: 0
+    - _Metallic: 0.1
     - _NormalMapToggle: 0
     - _NormalScale: 1
     - _Occlusion: 1

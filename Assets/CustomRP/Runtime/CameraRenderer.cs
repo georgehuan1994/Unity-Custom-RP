@@ -98,8 +98,12 @@ public partial class CameraRenderer
     /// </summary>
     /// <param name="useDynamicBatching">是否使用动态批处理</param>
     /// <param name="useGPUInstancing">是否使用 GPU 实例化</param>
-    private void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing)
+    private void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject)
     {
+        PerObjectData lightsPerObjectFlags = useLightsPerObject ? 
+                PerObjectData.LightData | PerObjectData.LightIndices : 
+                PerObjectData.None;
+        
         // 渲染排序设置：不透明物体排序，与摄像机的距离从近到远
         var sortingSettings = new SortingSettings(_camera) {criteria = SortingCriteria.CommonOpaque};
         var drawingSettings = new DrawingSettings(_unlitShaderTagId, sortingSettings)

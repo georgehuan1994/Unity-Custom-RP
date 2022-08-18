@@ -27,7 +27,8 @@ public class Lighting
     private static int _otherLightPositionsId = Shader.PropertyToID("_OtherLightPositions");
     private static int _otherLightDirectionsId = Shader.PropertyToID("_OtherLightDirections");  // 聚光灯方向
     private static int _otherLightSpotAnglesId = Shader.PropertyToID("_OtherLightSpotAngles");  // 聚光灯外角
-
+    private static int _otherLightShadowDataId = Shader.PropertyToID("_OtherLightShadowData");
+    
     private static Vector4[] _dirLightColors = new Vector4[MAXDirectionLightCount];
     private static Vector4[] _dirLightDirections = new Vector4[MAXDirectionLightCount];
     private static Vector4[] _dirLightShadowData = new Vector4[MAXDirectionLightCount];
@@ -36,7 +37,8 @@ public class Lighting
     private static Vector4[] _otherLightPositions = new Vector4[MAXOhterLightCount];
     private static Vector4[] _otherLightDirections = new Vector4[MAXOhterLightCount];   // 聚光灯方向
     private static Vector4[] _otherLightSpotAngles = new Vector4[MAXOhterLightCount];   // 聚光灯外角
-
+    private static Vector4[] _otherLightShadowData = new Vector4[MAXOhterLightCount];
+    
     private CullingResults _cullingResults;
 
     private Shadows _shadows = new Shadows();
@@ -114,6 +116,7 @@ public class Lighting
             _buffer.SetGlobalVectorArray(_otherLightPositionsId, _otherLightPositions);
             _buffer.SetGlobalVectorArray(_otherLightDirectionsId, _otherLightDirections);
             _buffer.SetGlobalVectorArray(_otherLightSpotAnglesId, _otherLightSpotAngles);
+            _buffer.SetGlobalVectorArray(_otherLightShadowDataId, _otherLightShadowData);
         }
     }
     
@@ -156,6 +159,9 @@ public class Lighting
         position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         _otherLightPositions[index] = position;
         _otherLightSpotAngles[index] = new Vector4(0f, 1f);
+
+        Light light = visibleLight.light;
+        _otherLightShadowData[index] = _shadows.ReserveOtherShadows(light, index);
     }
 
     /// <summary>
@@ -177,6 +183,8 @@ public class Lighting
         float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
         float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
         _otherLightSpotAngles[index] = new Vector4(angleRangeInv, -outerCos * angleRangeInv);
+        
+        _otherLightShadowData[index] = _shadows.ReserveOtherShadows(light, index);
     }
 
     /// <summary>

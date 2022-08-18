@@ -17,6 +17,7 @@ CBUFFER_START(_CustomLight)
     float4 _OtherLightPositions[MAX_OTHER_LIGHT_COUNT];
     float4 _OtherLightDirections[MAX_OTHER_LIGHT_COUNT];
     float4 _OtherLightSpotAngles[MAX_OTHER_LIGHT_COUNT];
+    float4 _OtherLightShadowData[MAX_OTHER_LIGHT_COUNT];
 CBUFFER_END
 
 struct Light
@@ -46,6 +47,15 @@ DirectionalShadowData GetDirectionalShadowDate(int lightIndex, ShadowData shadow
     data.tileIndex = _DirectionalLightShadowData[lightIndex].y + shadowData.cascadeIndex;
     data.normalBias = _DirectionalLightShadowData[lightIndex].z;
     data.shadowMaskChannel = _DirectionalLightShadowData[lightIndex].w;
+    return data;
+}
+
+// 获取非平行光阴影参数
+OtherShadowData GetOtherShadowData(int lightIndex)
+{
+    OtherShadowData data;
+    data.strength = _OtherLightShadowData[lightIndex].x;
+    data.shadowMaskChannel = _OtherLightShadowData[lightIndex].w;
     return data;
 }
 
@@ -86,11 +96,18 @@ Light GetOtherLight(int index, Surface surfaceWS, ShadowData shadowData)
     // float spotAttenuation = saturate(dot(_OtherLightDirections[index].xyz, light.direction));
     // light.attenuation = spotAttenuation * rangeAttenuation / distanceSqr;
 
+    // float distanceSqr = max(dot(ray, ray), 0.00001);
+    // float rangeAttenuation = Square(saturate(1.0 - Square(distanceSqr * _OtherLightPositions[index].w)));
+    // float4 spotAngles = _OtherLightSpotAngles[index];
+    // float spotAttenuation = Square(saturate(dot(_OtherLightDirections[index].xyz, light.direction.xyz) * spotAngles.x + spotAngles.y));
+    // light.attenuation = spotAttenuation * rangeAttenuation / distanceSqr;
+
     float distanceSqr = max(dot(ray, ray), 0.00001);
     float rangeAttenuation = Square(saturate(1.0 - Square(distanceSqr * _OtherLightPositions[index].w)));
     float4 spotAngles = _OtherLightSpotAngles[index];
     float spotAttenuation = Square(saturate(dot(_OtherLightDirections[index].xyz, light.direction.xyz) * spotAngles.x + spotAngles.y));
-    light.attenuation = spotAttenuation * rangeAttenuation / distanceSqr;
+    OtherShadowData otherShadowData = GetOtherShadowData(index);
+    light.attenuation = GetOtherLightShadowAttenuation(otherShadowData, shadowData, surfaceWS) * spotAttenuation * rangeAttenuation / distanceSqr;
 
     return light;
 }

@@ -58,6 +58,12 @@ struct DirectionalShadowData
     int shadowMaskChannel;
 };
 
+// 非平行光阴影参数
+struct OtherShadowData
+{
+    float strength;
+    int shadowMaskChannel;
+};
 
 
 float FadeShadowStrength(float distance, float scale, float fade)
@@ -192,7 +198,7 @@ float GetBakedShadow(ShadowMask mask, int channel, float strength)
     return 1.0;
 }
 
-// 混合阴影遮罩贴图和实时阴影贴图的光照衰减值
+// 混合阴影遮罩贴图和实时阴影贴图的光照衰减系数
 float MixBakedAndRealtimeShadows(ShadowData global, float shadow, int channel, float strength)
 {
     // 阴影遮罩贴图的光照衰减值，默认为 1
@@ -224,7 +230,7 @@ float MixBakedAndRealtimeShadows(ShadowData global, float shadow, int channel, f
     return lerp(1.0, shadow, strength * global.strength);
 }
 
-// 根据采样结果，返回光照衰减值 (修正后的阴影强度)
+// 根据采样结果，返回光照衰减系数 (修正后的阴影强度)
 float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowData global, Surface surfaceWS)
 {
     #if !defined(_RECEIVE_SHADOWS)
@@ -248,6 +254,25 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowD
         shadow = MixBakedAndRealtimeShadows(global, shadow, directional.shadowMaskChannel, directional.strength);
     }
 
+    return shadow;
+}
+
+// 非平行光光照衰减系数
+float GetOtherLightShadowAttenuation(OtherShadowData other, ShadowData global, Surface surfaceWS)
+{
+    #if !defined(_RECEIVE_SHADOWS)
+        return 1.0;
+    #endif
+
+    float shadow;
+    if (other.strength > 0.0)
+    {
+        shadow = GetBakedShadow(global.shadowMask, other.shadowMaskChannel, other.strength);
+    }
+    else
+    {
+        shadow = 1.0;
+    }
     return shadow;
 }
 
