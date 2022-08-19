@@ -12,8 +12,8 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     float4 unity_WorldTransformParams;
 
-    real4 unity_LightData;
-    real4 unity_LightIndices[2];
+    real4 unity_LightData;          // y 分量为每物体光源数量
+    real4 unity_LightIndices[2];    // 两个 Vector4 共 8 个每物体的光源索引
 
     // 光照探针中的遮挡数据
     float4 unity_ProbesOcclusion;

@@ -63,9 +63,10 @@ public class Lighting
     /// </summary>
     private void SetupLights(bool useLightsPerObject)
     {
+        // 从剔除结果中获取每物体光源列表
         NativeArray<int> indexMap = useLightsPerObject ? _cullingResults.GetLightIndexMap(Allocator.Temp) : default;
 
-        // 通过剔除结果，检索所需的数据
+        // 从剔除结果中获取可见光列表
         NativeArray<VisibleLight> visibleLights = _cullingResults.visibleLights;
         
         int dirLightCount = 0;
@@ -74,6 +75,7 @@ public class Lighting
         
         for (i = 0; i < visibleLights.Length; i++)
         {
+            // 除点光源和聚光灯之外的其他光源的每物体索引设为 -1
             int newIndex = -1;
             VisibleLight visibleLight = visibleLights[i];
 
@@ -115,10 +117,12 @@ public class Lighting
         
         if (useLightsPerObject)
         {
+            // 将不可见的光源索引值也设为 -1
             for (; i < indexMap.Length; i++)
             {
                 indexMap[i] = -1;
             }
+            // 应用并释放每物体光源索引，并启用着色器关键字
             _cullingResults.SetLightIndexMap(indexMap);
             indexMap.Dispose();
             Shader.EnableKeyword(_lightsPerObjectKeyword);
