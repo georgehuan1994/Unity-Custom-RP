@@ -184,7 +184,7 @@ float GetBakedShadow(ShadowMask mask, int channel)
     return shadow;
 }
 
-// 获取阴影遮罩贴图中的光照衰减值
+// 获取阴影遮罩贴图中的光照衰减系数
 float GetBakedShadow(ShadowMask mask, int channel, float strength)
 {
     // 如果启用了距离模式，使用 r 通道作为光照衰减值
