@@ -69,7 +69,7 @@ Shader "Unlit/GrassLit"
             {
                 Varyings OUT;
 
-                float3 positionWS = TransformObjectToWorld(IN.positionOS);
+                float3 positionWS = TransformObjectToWorld(IN.positionOS.xyz);
 
                 // float3 positionWS = TransformObjectToWorld(IN.positionOS);
 

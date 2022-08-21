@@ -220,7 +220,7 @@ Shader "Grass/InstancedIndirectGrass"
                 // 视野方向
                 half3 V = viewWS / perGrassToCameraDistance;
 
-                half3 baseColor = tex2Dlod(_BaseColorTexture, float4(TRANSFORM_TEX(positionWS.xz, _BaseColorTexture),0,0)) * _BaseColor;
+                half3 baseColor = tex2Dlod(_BaseColorTexture, float4(TRANSFORM_TEX(positionWS.xz, _BaseColorTexture),0,0)).xyz * _BaseColor;
                 half3 albedo = lerp(_GroundColor, baseColor, IN.positionOS.y);
 
                 half3 lightingResult = SampleSH(0) * albedo;

@@ -3,19 +3,18 @@ using UnityEngine;
 [System.Serializable]
 public class ShadowSettings
 {
-    /// <summary>
-    /// 贴图尺寸
-    /// </summary>
     public enum TextureSize
     {
         _256 = 256, _512 = 512, _1024 = 1024, _2048 = 2048, _4096 = 4096, _8192 = 8192
     }
     
-    [Min(0.001f)] public float maxDistance = 100f;  // 最大距离
-    [Range(0.001f, 1f)] public float distanceFade = 0.1f;
+    public enum FilterMode
+    {
+        PCF2x2, PCF3x3, PCF5x5, PCF7x7
+    }
     
     /// <summary>
-    /// 平行光阴影参数
+    /// 平行光阴影设置
     /// </summary>
     [System.Serializable]
     public struct Directional
@@ -39,7 +38,23 @@ public class ShadowSettings
 
         public Vector3 CascadeRatios => new Vector3(cascadeRatio1, cascadeRatio2, cascadeRatio3);
     }
+    
+    /// <summary>
+    /// 非平行光阴影设置
+    /// </summary>
+    [System.Serializable]
+    public struct Other
+    {
+        public TextureSize atlasSize;
 
+        public FilterMode filter;
+    }
+
+    // ===============================================================
+    
+    [Min(0.001f)] public float maxDistance = 100f;  // 最大距离
+    [Range(0.001f, 1f)] public float distanceFade = 0.1f;
+    
     public Directional directional = new Directional
     {
         atlasSize = TextureSize._1024,
@@ -51,9 +66,10 @@ public class ShadowSettings
         cascadeFade = 0.1f,
         cascadeBlend = Directional.CascadeBlendMode.Hard
     };
-    
-    public enum FilterMode
+
+    public Other other = new Other
     {
-        PCF2x2, PCF3x3, PCF5x5, PCF7x7
-    }
+        atlasSize = TextureSize._1024,
+        filter = FilterMode.PCF2x2
+    };
 }

@@ -29,7 +29,9 @@ struct Varyings
     float4 tangentWS : VAR_TANGENT;
     #endif
     float2 baseUV : VAR_BASE_UV;    // VAR_BASE_UV 没有特别的语义，只是一个自定义的标识
+    #if defined(_DETAIL_MAP)
     float2 detailUV : VAR_DETAIL_UV;
+    #endif
     GI_ATTRIBUTE_DATA
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输出结构中
 };

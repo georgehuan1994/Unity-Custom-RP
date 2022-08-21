@@ -86,20 +86,20 @@ public class Lighting
                     if (otherLightCount < MAXOhterLightCount)
                     {
                         newIndex = otherLightCount;
-                        SetupSpotLight(otherLightCount++, ref visibleLight);
+                        SetupSpotLight(otherLightCount++, i, ref visibleLight);
                     }
                     break;
                 case LightType.Directional:
                     if (dirLightCount < MAXDirectionLightCount)
                     {
-                        SetupDirectionalLight(dirLightCount++, ref visibleLight);
+                        SetupDirectionalLight(dirLightCount++, i, ref visibleLight);
                     }
                     break;
                 case LightType.Point:
                     if (otherLightCount < MAXOhterLightCount)
                     {
                         newIndex = otherLightCount;
-                        SetupPointLight(otherLightCount++, ref visibleLight);
+                        SetupPointLight(otherLightCount++, i, ref visibleLight);
                     }
                     break;
                 case LightType.Area:
@@ -150,17 +150,18 @@ public class Lighting
             _buffer.SetGlobalVectorArray(_otherLightShadowDataId, _otherLightShadowData);
         }
     }
-    
+
     /// <summary>
     /// 设置平行光 (使用剔除结果) 信息
     /// </summary>
-    /// <param name="index">索引</param>
-    /// <param name="visibleLight">可见灯光</param>
-    private void SetupDirectionalLight(int index, ref VisibleLight visibleLight)
+    /// <param name="index">平行可见光索引</param>
+    /// <param name="visibleIndex">可见光索引</param>
+    /// <param name="visibleLight">可见光</param>
+    private void SetupDirectionalLight(int index, int visibleIndex, ref VisibleLight visibleLight)
     {
         _dirLightColors[index] = visibleLight.finalColor;
         _dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
-        _dirLightShadowData[index] = _shadows.ReserveDirectionalShadows(visibleLight.light, index);
+        _dirLightShadowData[index] = _shadows.ReserveDirectionalShadows(visibleLight.light, visibleIndex);
     }
     
     /// <summary>
@@ -179,9 +180,10 @@ public class Lighting
     /// <summary>
     /// 设置点光源信息
     /// </summary>
-    /// <param name="index">索引</param>
-    /// <param name="visibleLight">可见灯光</param>
-    private void SetupPointLight(int index, ref VisibleLight visibleLight)
+    /// <param name="index">非平行可见光索引</param>
+    /// <param name="visibleIndex">可见光索引</param>
+    /// <param name="visibleLight">可见光</param>
+    private void SetupPointLight(int index, int visibleIndex, ref VisibleLight visibleLight)
     {
         // 颜色 x 强度
         _otherLightColors[index] = visibleLight.finalColor;
@@ -196,15 +198,16 @@ public class Lighting
         _otherLightSpotAngles[index] = new Vector4(0f, 1f);
 
         Light light = visibleLight.light;
-        _otherLightShadowData[index] = _shadows.ReserveOtherShadows(light, index);
+        _otherLightShadowData[index] = _shadows.ReserveOtherShadows(light, visibleIndex);
     }
 
     /// <summary>
     /// 设置聚光灯信息
     /// </summary>
-    /// <param name="index">索引</param>
-    /// <param name="visibleLight">可见灯光</param>
-    private void SetupSpotLight(int index, ref VisibleLight visibleLight)
+    /// <param name="index">非平行可见光索引</param>
+    /// <param name="visibleIndex">可见光索引</param>
+    /// <param name="visibleLight">可见光</param>
+    private void SetupSpotLight(int index, int visibleIndex, ref VisibleLight visibleLight)
     {
         // 颜色 x 强度
         _otherLightColors[index] = visibleLight.finalColor;
@@ -225,7 +228,7 @@ public class Lighting
         float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
         _otherLightSpotAngles[index] = new Vector4(angleRangeInv, -outerCos * angleRangeInv);
         
-        _otherLightShadowData[index] = _shadows.ReserveOtherShadows(light, index);
+        _otherLightShadowData[index] = _shadows.ReserveOtherShadows(light, visibleIndex);
     }
 
     /// <summary>
