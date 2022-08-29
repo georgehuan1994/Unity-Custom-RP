@@ -26,11 +26,15 @@ public partial class CameraRenderer
     private static ShaderTagId _litShaderTagId = new ShaderTagId("CustomLit");
 
     private Lighting _lighting = new Lighting();
+
+    protected PostFXStack _postFXStack = new PostFXStack();
+
+    private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     
     public void Render(
-        ScriptableRenderContext context, Camera camera, 
-        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, 
-        ShadowSettings shadowSettings)
+        ScriptableRenderContext context, Camera camera,
+        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
+        ShadowSettings shadowSettings, PostFXSettings postFXSettings)
     {
         _context = context;
         _camera = camera;
@@ -43,6 +47,7 @@ public partial class CameraRenderer
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
         _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject);  // 灯光设置
+        _postFXStack.Setup(context, camera, postFXSettings);    // 后处理设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置
@@ -51,9 +56,18 @@ public partial class CameraRenderer
         
 #if UNITY_EDITOR
         DrawUnSupportShaders();
-        DrawGizmo();
+        DrawGizmoBeforeFX();
 #endif
-        _lighting.Cleanup();    // 提交之前释放阴影贴图
+        if (_postFXStack.IsActive)
+        {
+            _postFXStack.Render(_frameBufferId);
+        }
+        
+#if UNITY_EDITOR
+        DrawGizmoAfterFX();
+#endif
+        
+        Cleanup();
         Submit();
     }
 
@@ -85,6 +99,20 @@ public partial class CameraRenderer
 
         // 获取相机的 clearFlags
         CameraClearFlags flags = _camera.clearFlags;
+
+        // 获取 _CameraFrameBuffer 作为相机的中间帧缓冲 (intermediate frame buffer)
+        if (_postFXStack.IsActive)
+        {
+            // 除非相机的 clearFlags 为 CameraClearFlags.Skybox = 1，否则清除 颜色缓冲 和 深度缓冲
+            if (flags > CameraClearFlags.Color)
+            {
+                flags = CameraClearFlags.Color;
+            }
+            _commandBuffer.GetTemporaryRT(_frameBufferId, _camera.pixelWidth, _camera.pixelHeight, 32,
+                FilterMode.Bilinear, RenderTextureFormat.Default);
+            _commandBuffer.SetRenderTarget(_frameBufferId, RenderBufferLoadAction.DontCare,
+                RenderBufferStoreAction.Store);
+        }
         
         // 向 command buffer 写入 清理指令
         // 向 command buffer 写入 采样指令
@@ -159,5 +187,16 @@ public partial class CameraRenderer
     {
         _context.ExecuteCommandBuffer(_commandBuffer);
         _commandBuffer.Clear();
+    }
+
+    protected void Cleanup()
+    {
+        _lighting.Cleanup();    // 提交之前释放阴影贴图
+        
+        if (_postFXStack.IsActive)
+        {
+            // 释放临时的 Render Texture
+            _commandBuffer.ReleaseTemporaryRT(_frameBufferId);
+        }
     }
 }

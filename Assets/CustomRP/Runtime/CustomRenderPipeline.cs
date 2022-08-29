@@ -10,6 +10,8 @@ public partial class CustomRenderPipeline : RenderPipeline
     private bool _useLightsPerObject;
     
     private ShadowSettings _shadowSettings;
+
+    protected PostFXSettings _postFXSettings;
     
     /// <summary>
     /// Unity 每帧调用一次此方法来渲染每个可见的场景视图或游戏视图
@@ -20,7 +22,7 @@ public partial class CustomRenderPipeline : RenderPipeline
     {
         foreach (Camera camera in cameras) 
         {
-            _renderer.Render(context, camera, _useDynamicBatching, _useGPUInstancing, _useLightsPerObject, _shadowSettings);
+            _renderer.Render(context, camera, _useDynamicBatching, _useGPUInstancing, _useLightsPerObject, _shadowSettings, _postFXSettings);
         }
     }
     
@@ -32,12 +34,13 @@ public partial class CustomRenderPipeline : RenderPipeline
     /// <param name="useSRPBatcher">是否使用静态批处理</param>
     public CustomRenderPipeline(
         bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher, bool userLightsPerObject,
-        ShadowSettings shadowSettings)
+        ShadowSettings shadowSettings, PostFXSettings postFXSettings)
     {
         _useDynamicBatching = useDynamicBatching;
         _useGPUInstancing = useGPUInstancing;
         _shadowSettings = shadowSettings;
         _useLightsPerObject = userLightsPerObject;
+        _postFXSettings = postFXSettings;
         
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;

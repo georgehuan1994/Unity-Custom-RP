@@ -41,13 +41,24 @@ public partial class CameraRenderer // Editor Only
     }
 
     /// <summary>
-    /// 绘制 Gizmo
+    /// 绘制 Gizmo (在 Post-FX Render Texture 之前)
     /// </summary>
-    private void DrawGizmo()
+    private void DrawGizmoBeforeFX()
     {
         if (Handles.ShouldRenderGizmos())
         {
             _context.DrawGizmos(_camera, GizmoSubset.PreImageEffects);  // 用于指定应在后处理之前渲染的辅助图标
+            
+        }
+    }
+    
+    /// <summary>
+    /// 绘制 Gizmo (在 Post-FX Render Texture 之前)
+    /// </summary>
+    private void DrawGizmoAfterFX()
+    {
+        if (Handles.ShouldRenderGizmos())
+        {
             _context.DrawGizmos(_camera, GizmoSubset.PostImageEffects); // 用于指定应在后处理之后渲染的辅助图标
         }
     }

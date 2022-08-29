@@ -11,8 +11,10 @@ public class CustomRenderPipelineAsset : RenderPipelineAsset
     
     [SerializeField] private ShadowSettings shadowSettings = default;
     
+    [SerializeField] private PostFXSettings postFXSettings = default;
+
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline(useDynamicBatching, useGPUInstancing, useSRPBatcher, useLightsPerObject, shadowSettings);
+        return new CustomRenderPipeline(useDynamicBatching, useGPUInstancing, useSRPBatcher, useLightsPerObject, shadowSettings, postFXSettings);
     }
 }
