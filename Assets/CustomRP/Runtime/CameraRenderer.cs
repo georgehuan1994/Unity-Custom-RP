@@ -99,8 +99,7 @@ public partial class CameraRenderer
 
         // 获取相机的 clearFlags
         CameraClearFlags flags = _camera.clearFlags;
-
-        // 获取 _CameraFrameBuffer 作为相机的中间帧缓冲 (intermediate frame buffer)
+        
         if (_postFXStack.IsActive)
         {
             // 除非相机的 clearFlags 为 CameraClearFlags.Skybox = 1，否则清除 颜色缓冲 和 深度缓冲
@@ -108,6 +107,9 @@ public partial class CameraRenderer
             {
                 flags = CameraClearFlags.Color;
             }
+            
+            // 获取 _CameraFrameBuffer 相机的中间帧缓冲 (intermediate frame buffer)
+            // 并将其设置为 RenderTarget，为处于激活状态的 Post FX Stack 提供源纹理
             _commandBuffer.GetTemporaryRT(_frameBufferId, _camera.pixelWidth, _camera.pixelHeight, 32,
                 FilterMode.Bilinear, RenderTextureFormat.Default);
             _commandBuffer.SetRenderTarget(_frameBufferId, RenderBufferLoadAction.DontCare,
