@@ -171,15 +171,16 @@ public partial class PostFXStack
         
         RenderTextureFormat format = RenderTextureFormat.Default;
 
+        _buffer.GetTemporaryRT(_bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
+        Draw(sourceId, _bloomPrefilterId, Pass.Prefilter);
+        
         if (bloom.halfRes)
         {
-            _buffer.GetTemporaryRT(_bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
-            Draw(sourceId, _bloomPrefilterId, Pass.Prefilter);
             width /= 2;
             height /= 2;
         }
 
-        int fromId = bloom.halfRes ? _bloomPrefilterId : sourceId;
+        int fromId = _bloomPrefilterId;
         int toId = _bloomPyramidId + 1;
 
         int i;
@@ -204,10 +205,7 @@ public partial class PostFXStack
             height /= 2;
         }
 
-        if (bloom.halfRes)
-        {
-            _buffer.ReleaseTemporaryRT(_bloomPrefilterId);
-        }
+        _buffer.ReleaseTemporaryRT(_bloomPrefilterId);
 
         // Draw(fromId, BuiltinRenderTextureType.CameraTarget, Pass.Copy);
 
