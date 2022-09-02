@@ -11,6 +11,17 @@ Shader "Hidden/Custom RP/Post FX Stack"
         #include "../ShaderLibrary/UnityInput.hlsl"
         #include "PostFXStackPasses.hlsl"
         ENDHLSL
+        
+        Pass
+        {
+            Name "Bloom PrefilterFireflies"
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex DefaultPassVertex
+            #pragma fragment BloomPrefilterFirefliesPassFragment
+            ENDHLSL
+        }
 
         Pass
         {

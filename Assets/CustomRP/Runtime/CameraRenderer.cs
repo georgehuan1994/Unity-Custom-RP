@@ -30,9 +30,11 @@ public partial class CameraRenderer
     protected PostFXStack _postFXStack = new PostFXStack();
 
     private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+
+    private bool _useHDR;
     
     public void Render(
-        ScriptableRenderContext context, Camera camera,
+        ScriptableRenderContext context, Camera camera, bool allowHDR,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
         ShadowSettings shadowSettings, PostFXSettings postFXSettings)
     {
@@ -42,7 +44,10 @@ public partial class CameraRenderer
         PrepareBuffer();
         PrepareForSceneWindow();
         
-        if (!Cull(shadowSettings.maxDistance)) return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
+        if (!Cull(shadowSettings.maxDistance)) 
+            return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
+
+        _useHDR = allowHDR && camera.allowHDR;
         
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
@@ -111,7 +116,8 @@ public partial class CameraRenderer
             // 获取 _CameraFrameBuffer 相机的中间帧缓冲 (intermediate frame buffer)
             // 并将其设置为 RenderTarget，为处于激活状态的 Post FX Stack 提供源纹理
             _commandBuffer.GetTemporaryRT(_frameBufferId, _camera.pixelWidth, _camera.pixelHeight, 32,
-                FilterMode.Bilinear, RenderTextureFormat.Default);
+                FilterMode.Bilinear,
+                _useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
             _commandBuffer.SetRenderTarget(_frameBufferId, RenderBufferLoadAction.DontCare,
                 RenderBufferStoreAction.Store);
         }

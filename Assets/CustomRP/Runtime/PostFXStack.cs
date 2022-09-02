@@ -18,7 +18,8 @@ public partial class PostFXStack
     
     private enum Pass
     {
-        Prefilter,
+        BloomPrefilterFireflies,
+        BloomPrefilter,
         BloomCombine,
         BloomVertical,
         BloomHorizontal,
@@ -101,7 +102,8 @@ public partial class PostFXStack
         RenderTextureFormat format = RenderTextureFormat.Default;
         
         _buffer.GetTemporaryRT(_bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
-        Draw(sourceId, _bloomPrefilterId, Pass.Prefilter);
+        Draw(sourceId, _bloomPrefilterId, Pass.BloomPrefilter);
+        
         width /= 2;
         height /= 2;
         
@@ -172,7 +174,9 @@ public partial class PostFXStack
         RenderTextureFormat format = RenderTextureFormat.Default;
 
         _buffer.GetTemporaryRT(_bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
-        Draw(sourceId, _bloomPrefilterId, Pass.Prefilter);
+        // Draw(sourceId, _bloomPrefilterId, Pass.BloomPrefilter);
+        Draw(sourceId, _bloomPrefilterId, 
+            bloom.fadeFireflies ? Pass.BloomPrefilterFireflies : Pass.BloomPrefilter);
         
         if (bloom.halfRes)
         {
