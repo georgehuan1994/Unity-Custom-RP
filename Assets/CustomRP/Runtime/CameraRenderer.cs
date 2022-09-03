@@ -52,7 +52,7 @@ public partial class CameraRenderer
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
         _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject);  // 灯光设置
-        _postFXStack.Setup(context, camera, postFXSettings);    // 后处理设置
+        _postFXStack.Setup(context, camera, postFXSettings, _useHDR);    // 后处理设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置

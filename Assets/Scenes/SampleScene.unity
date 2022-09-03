@@ -35739,7 +35739,7 @@ GameObject:
   - component: {fileID: 2326520264201418712}
   - component: {fileID: 2326520264201418713}
   m_Layer: 0
-  m_Name: Spot Light
+  m_Name: Spot Light_200
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -37932,7 +37932,7 @@ GameObject:
   - component: {fileID: 4592341629788355561}
   - component: {fileID: 4592341629788355560}
   m_Layer: 0
-  m_Name: Spot Light
+  m_Name: Spot Light_50
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -39238,7 +39238,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6031888313887792141
 Transform:
   m_ObjectHideFlags: 0
@@ -39281,7 +39281,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &6031888313904589582
 Light:
   m_ObjectHideFlags: 0
@@ -39291,7 +39291,7 @@ Light:
   m_GameObject: {fileID: 6031888313904589581}
   m_Enabled: 1
   serializedVersion: 10
-  m_Type: 0
+  m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 5
@@ -41355,7 +41355,7 @@ GameObject:
   - component: {fileID: 7322461875280864498}
   - component: {fileID: 7322461875280864499}
   m_Layer: 0
-  m_Name: Spot Light
+  m_Name: Spot Light_20
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -43830,7 +43830,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8930136856038554696
 Transform:
   m_ObjectHideFlags: 0
