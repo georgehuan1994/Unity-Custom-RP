@@ -32,11 +32,13 @@ public partial class CameraRenderer
     private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
 
     private bool _useHDR;
+
+    private int _colorLUTResolution;
     
     public void Render(
         ScriptableRenderContext context, Camera camera, bool allowHDR,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
-        ShadowSettings shadowSettings, PostFXSettings postFXSettings)
+        ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
     {
         _context = context;
         _camera = camera;
@@ -52,7 +54,7 @@ public partial class CameraRenderer
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
         _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject);  // 灯光设置
-        _postFXStack.Setup(context, camera, postFXSettings, _useHDR);    // 后处理设置
+        _postFXStack.Setup(context, camera, postFXSettings, _useHDR, colorLUTResolution);    // 后处理设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置

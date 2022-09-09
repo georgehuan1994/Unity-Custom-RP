@@ -1661,7 +1661,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 72976289}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.93, y: 2.763, z: 2.773}
+  m_LocalPosition: {x: -0.93, y: 2.79, z: 2.773}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1247397149}
@@ -1995,7 +1995,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &94029103
 Transform:
@@ -2026,7 +2026,7 @@ MonoBehaviour:
   baseColor: {r: 0.7122642, g: 1, b: 0.91202074, a: 1}
   cutoff: 0.5
   metallic: 0
-  smoothness: 0.691
+  smoothness: 0.65
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!23 &94029105
 MeshRenderer:
@@ -2040,7 +2040,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -13259,7 +13259,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &894674065
 Transform:
@@ -13287,10 +13287,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07e5b72869df2074ea3d95ab7373f86f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseColor: {r: 1, g: 0.4575472, b: 0.52003056, a: 1}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
   cutoff: 0.5
-  metallic: 0.554
-  smoothness: 0.54
+  metallic: 0.039
+  smoothness: 0.033
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!23 &894674067
 MeshRenderer:
@@ -13304,7 +13304,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -16394,7 +16394,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -20296,7 +20296,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -24930,7 +24930,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1636453738
 Transform:
@@ -24958,10 +24958,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07e5b72869df2074ea3d95ab7373f86f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseColor: {r: 0.9814081, g: 1, b: 0.3160377, a: 1}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
   cutoff: 0.5
-  metallic: 0.232
-  smoothness: 1
+  metallic: 0
+  smoothness: 0
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!23 &1636453740
 MeshRenderer:
@@ -24975,7 +24975,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -26679,7 +26679,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: -1.854968e-25, z: 4.5905e-41, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: -2.2063019e-34, z: 4.5904e-41, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -28069,16 +28069,10 @@ LightProbeGroup:
   m_GameObject: {fileID: 1778157218}
   m_Enabled: 1
   m_SourcePositions:
-  - {x: 6.0120792, y: 2.9112797, z: 5.3126}
-  - {x: 6.0120792, y: 2.9112797, z: -4.277636}
   - {x: 6.0120792, y: -0.55104434, z: 5.3126}
   - {x: 6.0120792, y: -0.55104434, z: -4.277636}
-  - {x: 0.03985572, y: 2.9112797, z: 5.3126}
-  - {x: 0.03985572, y: 2.9112797, z: -4.277636}
   - {x: 0.03985572, y: -0.55104434, z: 5.3126}
   - {x: 0.03985572, y: -0.55104434, z: -4.277636}
-  - {x: -5.437718, y: 2.9112797, z: 5.3126}
-  - {x: -5.437718, y: 2.9112797, z: -4.277636}
   - {x: -5.437718, y: -0.55104434, z: 5.3126}
   - {x: -5.437718, y: -0.55104434, z: -4.277636}
   - {x: 6.0120792, y: 0.7709949, z: 5.3126}
@@ -28087,115 +28081,78 @@ LightProbeGroup:
   - {x: 0.03985572, y: 0.7709949, z: -4.277636}
   - {x: -5.437718, y: 0.7709949, z: 5.3126}
   - {x: -5.437718, y: 0.7709949, z: -4.277636}
-  - {x: -1.270718, y: 2.9112797, z: 5.3126}
-  - {x: -1.270718, y: 2.9112797, z: -4.277636}
   - {x: -1.270718, y: -0.55104434, z: 5.3126}
   - {x: -1.270718, y: -0.55104434, z: -4.277636}
   - {x: -1.270718, y: 0.7709949, z: 5.3126}
   - {x: -1.270718, y: 0.7709949, z: -4.277636}
-  - {x: -2.9763699, y: 2.9112797, z: 5.3126}
-  - {x: -2.9763699, y: 2.9112797, z: -4.277636}
   - {x: -2.9763699, y: -0.55104434, z: 5.3126}
   - {x: -2.9763699, y: -0.55104434, z: -4.277636}
   - {x: -2.9763699, y: 0.7709949, z: 5.3126}
   - {x: -2.9763699, y: 0.7709949, z: -4.277636}
-  - {x: 1.3807412, y: 2.9112797, z: 5.3126}
-  - {x: 1.3807412, y: 2.9112797, z: -4.277636}
   - {x: 1.3807412, y: -0.55104434, z: 5.3126}
   - {x: 1.3807412, y: -0.55104434, z: -4.277636}
   - {x: 1.3807412, y: 0.7709949, z: 5.3126}
   - {x: 1.3807412, y: 0.7709949, z: -4.277636}
-  - {x: 3.859702, y: 2.9112797, z: 5.3126}
-  - {x: 3.859702, y: 2.9112797, z: -4.277636}
   - {x: 3.859702, y: -0.55104434, z: 5.3126}
   - {x: 3.859702, y: -0.55104434, z: -4.277636}
   - {x: 3.859702, y: 0.7709949, z: 5.3126}
   - {x: 3.859702, y: 0.7709949, z: -4.277636}
-  - {x: 6.0120792, y: 2.9112797, z: 1}
   - {x: 6.0120792, y: -0.55104434, z: 1}
-  - {x: 0.03985572, y: 2.9112797, z: 1}
   - {x: 0.03985572, y: 0.07380092, z: 1}
-  - {x: -5.437718, y: 2.9112797, z: -3.644318}
   - {x: -5.437718, y: -0.55104434, z: -3.644318}
   - {x: 6.0120792, y: 0.7709949, z: 1}
   - {x: 0.03985572, y: 0.7709949, z: 1}
   - {x: -5.437718, y: 0.7709949, z: -3.644318}
-  - {x: -1.270718, y: 2.9112797, z: 1}
   - {x: -0.4218226, y: -0.5087362, z: 1}
   - {x: -1.270718, y: 0.7709949, z: 1}
-  - {x: -2.9763699, y: 2.9112797, z: 1}
   - {x: -2.9763699, y: -0.55104434, z: 1}
   - {x: -2.9763699, y: 0.7709949, z: 1}
-  - {x: 1.3807412, y: 2.9112797, z: 1}
   - {x: 1.0570743, y: -0.031083941, z: 1}
   - {x: 1.3807412, y: 0.7709949, z: 1}
-  - {x: 3.859702, y: 2.9112797, z: 1}
   - {x: 3.859702, y: -0.55104434, z: 1}
   - {x: 3.859702, y: 0.7709949, z: 1}
-  - {x: 6.0120792, y: 2.9112797, z: 2.6127963}
   - {x: 6.0120792, y: -0.55104434, z: 2.6127963}
-  - {x: 0.03985572, y: 2.9112797, z: 2.6127963}
   - {x: 0.03985572, y: -0.55104434, z: 2.6127963}
-  - {x: -5.437718, y: 2.9112797, z: 2.6127963}
   - {x: -5.437718, y: -0.55104434, z: 2.6127963}
   - {x: 6.0120792, y: 0.7709949, z: 2.6127963}
   - {x: 0.03985572, y: 0.7709949, z: 2.6127963}
   - {x: -5.437718, y: 0.7709949, z: 2.6127963}
-  - {x: -1.270718, y: 2.9112797, z: 2.6127963}
   - {x: -1.270718, y: -0.55104434, z: 2.6127963}
   - {x: -1.270718, y: 0.7709949, z: 2.6127963}
-  - {x: -2.9763699, y: 2.9112797, z: 2.6127963}
   - {x: -2.9763699, y: -0.55104434, z: 2.6127963}
   - {x: -2.9763699, y: 0.7709949, z: 2.6127963}
-  - {x: 1.3807412, y: 2.9112797, z: 2.6127963}
   - {x: 1.3807412, y: -0.55104434, z: 2.6127963}
   - {x: 1.3807412, y: 0.7709949, z: 2.6127963}
-  - {x: 3.859702, y: 2.9112797, z: 2.6127963}
   - {x: 3.859702, y: -0.55104434, z: 2.6127963}
   - {x: 3.859702, y: 0.7709949, z: 2.6127963}
-  - {x: 6.0120792, y: 2.9112797, z: -1.5290427}
   - {x: 6.0120792, y: -0.55104434, z: -1.5290427}
-  - {x: 0.03985572, y: 2.9112797, z: -1.5290427}
   - {x: -1.2263104, y: -0.55104434, z: -3.5711637}
-  - {x: -5.437718, y: 2.9112797, z: -1.5290427}
   - {x: -5.437718, y: -0.55104434, z: -1.5290427}
   - {x: 6.0120792, y: 0.7709949, z: -1.5290427}
   - {x: -1.2263104, y: 0.7709949, z: -3.5711637}
   - {x: -5.437718, y: 0.7709949, z: -1.5290427}
-  - {x: -1.270718, y: 2.9112797, z: -1.5290427}
   - {x: -2.5368838, y: -0.55104434, z: -3.5711637}
   - {x: -2.5368838, y: 0.7709949, z: -3.5711637}
-  - {x: -2.9763699, y: 2.9112797, z: -1.5290427}
   - {x: -2.9763699, y: -0.55104434, z: -1.5290427}
   - {x: -2.9763699, y: 0.7709949, z: -1.5290427}
-  - {x: 1.3807412, y: 2.9112797, z: -1.5290427}
   - {x: 1.3807412, y: -0.55104434, z: -1.5290427}
   - {x: 1.3807412, y: 0.7709949, z: -1.5290427}
-  - {x: 3.859702, y: 2.9112797, z: -1.5290427}
   - {x: 3.859702, y: -0.55104434, z: -1.5290427}
   - {x: 3.859702, y: 0.7709949, z: -1.5290427}
-  - {x: -5.437718, y: 2.9112797, z: 1}
   - {x: -5.437718, y: -0.55104434, z: 1}
   - {x: -5.437718, y: 0.7709949, z: 1}
-  - {x: 6.0120792, y: 2.9112797, z: -6.1733613}
   - {x: 6.0120792, y: -0.55104434, z: -6.1733613}
-  - {x: 0.03985572, y: 2.9112797, z: -6.1733613}
   - {x: 0.03985572, y: -0.55104434, z: -6.1733613}
-  - {x: -5.437718, y: 2.9112797, z: -6.1733613}
   - {x: -5.437718, y: -0.55104434, z: -6.1733613}
   - {x: 6.0120792, y: 0.7709949, z: -6.1733613}
   - {x: 0.03985572, y: 0.7709949, z: -6.1733613}
   - {x: -5.437718, y: 0.7709949, z: -6.1733613}
-  - {x: -1.270718, y: 2.9112797, z: -6.1733613}
   - {x: -1.270718, y: -0.55104434, z: -6.1733613}
   - {x: -1.270718, y: 0.7709949, z: -6.1733613}
-  - {x: -2.9763699, y: 2.9112797, z: -6.1733613}
   - {x: -2.9763699, y: -0.55104434, z: -6.1733613}
   - {x: -2.9763699, y: 0.7709949, z: -6.1733613}
-  - {x: 1.3807412, y: 2.9112797, z: -6.1733613}
   - {x: 1.3807412, y: -0.55104434, z: -6.1733613}
   - {x: 1.3807412, y: 0.7709949, z: -6.1733613}
-  - {x: 3.859702, y: 2.9112797, z: -6.1733613}
   - {x: 3.859702, y: -0.55104434, z: -6.1733613}
   - {x: 3.859702, y: 0.7709949, z: -6.1733613}
   m_Dering: 1
@@ -31089,7 +31046,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1982835931
 Transform:
@@ -31134,7 +31091,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -32199,7 +32156,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 1.8168627e+31, z: 4.472574e+21, w: 45731220}
+  m_BoundingSphereOverride: {x: 1, y: 0, z: 0, w: 1}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0

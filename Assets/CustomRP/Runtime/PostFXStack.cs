@@ -19,10 +19,11 @@ public partial class PostFXStack
     
     private enum Pass
     {
-        ToneMappingNone,
-        ToneMappingACES,
-        ToneMappingNeutral,
-        ToneMappingReinhard,
+        ColorGradingFinal,
+        ColorGradingNone,
+        ColorGradingACES,
+        ColorGradingNeutral,
+        ColorGradingReinhard,
         BloomScatterFinal,
         BloomScatter,
         BloomPrefilterFireflies,
@@ -52,7 +53,10 @@ public partial class PostFXStack
     private int _smhMidtonesId = Shader.PropertyToID("_SMHMidtones");
     private int _smhHighlightId = Shader.PropertyToID("_SMHHighlights");
     private int _smhRangeId = Shader.PropertyToID("_SMHRange");
-
+    private int _colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT");
+    private int _ColorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters");
+    private int _colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC");
+    
     // 辉光纹理采样金字塔最大等级
     private const int MaxBloomPyramidLevels = 16;
 
@@ -63,6 +67,8 @@ public partial class PostFXStack
     public bool IsActive => _settings != null;
 
     private bool _useHDR;
+
+    private int _colorLUTResolution;
     
     public PostFXStack()
     {
@@ -80,12 +86,13 @@ public partial class PostFXStack
         }
     }
 
-    public void Setup(ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR)
+    public void Setup(ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR, int colorLUTResolution)
     {
         _context = context;
         _camera = camera;
         _settings = camera.cameraType != CameraType.SceneView ? settings : null;
         _useHDR = useHDR;
+        _colorLUTResolution = colorLUTResolution;
         
 #if UNITY_EDITOR
         ApplySceneViewState();
@@ -351,10 +358,26 @@ public partial class PostFXStack
         ConfigureSplitToning();
         ConfigureChannelMixer();
         ConfigureShadowsMidtonesHighlights();
+
+        int lutHeight = _colorLUTResolution;
+        int lutWidth = lutHeight * lutHeight;
+        _buffer.GetTemporaryRT(_colorGradingLUTId, lutWidth, lutHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
+        
+        // ToneMappingSettings.Mode mode = _settings.ToneMapping.mode;
+        // // Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingACES + (int)mode;
+        // Pass pass = Pass.ColorGradingNone + (int)mode;
+        // Draw(sourceId, BuiltinRenderTextureType.CameraTarget, pass);
+        
+        _buffer.SetGlobalVector(_ColorGradingLUTParametersId, new Vector4(
+            lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1)));
         
         ToneMappingSettings.Mode mode = _settings.ToneMapping.mode;
-        // Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingACES + (int)mode;
-        Pass pass = Pass.ToneMappingNone + (int)mode;
-        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, pass);
+        Pass pass = Pass.ColorGradingNone + (int)mode;
+        _buffer.SetGlobalFloat(_colorGradingLUTInLogId, _useHDR && pass != Pass.ColorGradingNone ? 1f : 0f);
+        Draw(sourceId, _colorGradingLUTId, pass);
+        _buffer.SetGlobalVector(_ColorGradingLUTParametersId, new Vector4(
+            1f / lutWidth, 1f / lutHeight, lutHeight -1));
+        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.ColorGradingFinal);
+        _buffer.ReleaseTemporaryRT(_colorGradingLUTId);
     }
 }
