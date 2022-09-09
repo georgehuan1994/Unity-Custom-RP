@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
+  m_IndirectSpecularColor: {r: 0.1775791, g: 0.22232296, b: 0.30451873, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: d99d343d25afc6f4eb825f1a6abe3c0e, type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 409ec6219dc99e340a4acb631bfdb6c2, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -2354,7 +2354,7 @@ MonoBehaviour:
   cutoff: 0.5
   metallic: 0
   smoothness: 0.5
-  emissionColor: {r: 0.9528302, g: 0.621542, b: 0.13932894, a: 1}
+  emissionColor: {r: 0.9529412, g: 0.61960787, b: 0.14117648, a: 1}
 --- !u!23 &116299734
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8475,7 +8475,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &531256849
 Transform:
   m_ObjectHideFlags: 0
@@ -12062,7 +12062,7 @@ ReflectionProbe:
   serializedVersion: 2
   m_Type: 0
   m_Mode: 1
-  m_RefreshMode: 0
+  m_RefreshMode: 1
   m_TimeSlicingMode: 0
   m_Resolution: 512
   m_UpdateFrequency: 0
@@ -16901,7 +16901,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1114516504
 Transform:
   m_ObjectHideFlags: 0
@@ -23675,7 +23675,7 @@ MonoBehaviour:
   cutoff: 0.5
   metallic: 0
   smoothness: 0.5
-  emissionColor: {r: 1, g: 0, b: 0, a: 1}
+  emissionColor: {r: 2, g: 0, b: 0, a: 1}
 --- !u!23 &1549991273
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -26679,7 +26679,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 2.17e-43, z: 4.86e-43, w: 6e-44}
+  m_BoundingSphereOverride: {x: 0, y: -1.854968e-25, z: 4.5905e-41, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -32199,7 +32199,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 5.6e-44}
+  m_BoundingSphereOverride: {x: 0, y: 1.8168627e+31, z: 4.472574e+21, w: 45731220}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -42583,7 +42583,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &8472713236385800671
 MonoBehaviour:
   m_ObjectHideFlags: 0
