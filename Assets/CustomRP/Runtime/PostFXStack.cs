@@ -130,6 +130,19 @@ public partial class PostFXStack
         // 使用后处理材质在 RenderTarget 上绘制三角形
         _buffer.DrawProcedural(Matrix4x4.identity, _settings.Material, (int)pass, MeshTopology.Triangles, 3);
     }
+    
+    
+    private void DrawFinal(RenderTargetIdentifier from)
+    {
+        // 从标识符为 from 的 RenderTarget 中获取纹理，复制到标识符为 _PostFXSource 的纹理
+        _buffer.SetGlobalTexture(_fxSourceId, from);
+        // 将 Camera 的 RenderTarget 作为绘制目标
+        _buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        // 校正视口参数
+        _buffer.SetViewport(_camera.pixelRect);
+        // 使用后处理材质在 RenderTarget 上绘制三角形
+        _buffer.DrawProcedural(Matrix4x4.identity, _settings.Material, (int)Pass.ColorGradingFinal, MeshTopology.Triangles, 3);
+    }
 
     private void GaussianBlurring(int sourceId)
     {
@@ -377,7 +390,8 @@ public partial class PostFXStack
         Draw(sourceId, _colorGradingLUTId, pass);
         _buffer.SetGlobalVector(_ColorGradingLUTParametersId, new Vector4(
             1f / lutWidth, 1f / lutHeight, lutHeight -1));
-        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.ColorGradingFinal);
+        // Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.ColorGradingFinal);
+        DrawFinal(sourceId);
         _buffer.ReleaseTemporaryRT(_colorGradingLUTId);
     }
 }
