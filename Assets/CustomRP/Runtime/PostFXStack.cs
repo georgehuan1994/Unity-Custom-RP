@@ -137,7 +137,7 @@ public partial class PostFXStack
         // 从标识符为 from 的 RenderTarget 中获取纹理，复制到标识符为 _PostFXSource 的纹理
         _buffer.SetGlobalTexture(_fxSourceId, from);
         // 将 Camera 的 RenderTarget 作为绘制目标
-        _buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        _buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
         // 校正视口参数
         _buffer.SetViewport(_camera.pixelRect);
         // 使用后处理材质在 RenderTarget 上绘制三角形

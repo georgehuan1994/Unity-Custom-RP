@@ -20,7 +20,7 @@ MonoBehaviour:
     bicubicUpsampling: 1
     threshold: 0.5
     thresholdKnee: 0.5
-    intensity: 0.15
+    intensity: 0.7
     fadeFireflies: 1
     mode: 0
     scatter: 0.8
@@ -50,4 +50,4 @@ MonoBehaviour:
     highlightStart: 0.55
     highLightsEnd: 1
   toneMapping:
-    mode: 2
+    mode: 0

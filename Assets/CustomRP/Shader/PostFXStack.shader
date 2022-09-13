@@ -15,6 +15,8 @@ Shader "Hidden/Custom RP/Post FX Stack"
         Pass
         {
             Name "ColorGrading Final"
+            
+            Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma target 3.5
