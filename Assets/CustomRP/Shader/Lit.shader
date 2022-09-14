@@ -51,7 +51,7 @@ Shader "Custom RP/Lit"
         {
             Tags { "LightMode" = "CustomLit" }  // 自定义光照标签
             
-            Blend [_SrcBlend] [_DstBlend]       // 源颜色 (该片元产生的颜色) * SrcFactor + 目标颜色 (已经存在于颜色缓存的颜色) * DstFactor
+            Blend [_SrcBlend] [_DstBlend], One OneMinusSrcAlpha      // 源颜色 (该片元产生的颜色) * SrcFactor + 目标颜色 (已经存在于颜色缓存的颜色) * DstFactor
             ZWrite [_ZWrite]                    // 深度写入开关
             
             HLSLPROGRAM

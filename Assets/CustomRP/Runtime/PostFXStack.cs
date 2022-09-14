@@ -56,6 +56,8 @@ public partial class PostFXStack
     private int _colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT");
     private int _ColorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters");
     private int _colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC");
+    private int _finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend");
+    private int _finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
     
     // 辉光纹理采样金字塔最大等级
     private const int MaxBloomPyramidLevels = 16;
@@ -69,6 +71,8 @@ public partial class PostFXStack
     private bool _useHDR;
 
     private int _colorLUTResolution;
+
+    private CameraSettings.FinalBlendMode _finalBlendMode;
     
     public PostFXStack()
     {
@@ -86,13 +90,15 @@ public partial class PostFXStack
         }
     }
 
-    public void Setup(ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR, int colorLUTResolution)
+    public void Setup(ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR, int colorLUTResolution,
+        CameraSettings.FinalBlendMode finalBlendMode)
     {
         _context = context;
         _camera = camera;
         _settings = camera.cameraType != CameraType.SceneView ? settings : null;
         _useHDR = useHDR;
         _colorLUTResolution = colorLUTResolution;
+        _finalBlendMode = finalBlendMode;
         
 #if UNITY_EDITOR
         ApplySceneViewState();
@@ -134,10 +140,17 @@ public partial class PostFXStack
     
     private void DrawFinal(RenderTargetIdentifier from)
     {
+        // 传递相机的混合模式
+        _buffer.SetGlobalFloat(_finalSrcBlendId, (float)_finalBlendMode.source);
+        _buffer.SetGlobalFloat(_finalDstBlendId, (float)_finalBlendMode.destination);
+        
         // 从标识符为 from 的 RenderTarget 中获取纹理，复制到标识符为 _PostFXSource 的纹理
         _buffer.SetGlobalTexture(_fxSourceId, from);
         // 将 Camera 的 RenderTarget 作为绘制目标
-        _buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+        _buffer.SetRenderTarget(
+            BuiltinRenderTextureType.CameraTarget, 
+            _finalBlendMode.destination == BlendMode.Zero ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load, 
+            RenderBufferStoreAction.Store);
         // 校正视口参数
         _buffer.SetViewport(_camera.pixelRect);
         // 使用后处理材质在 RenderTarget 上绘制三角形

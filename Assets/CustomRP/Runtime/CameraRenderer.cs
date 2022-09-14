@@ -34,6 +34,8 @@ public partial class CameraRenderer
     private bool _useHDR;
 
     private int _colorLUTResolution;
+
+    private static CameraSettings _defaultCameraSettings = new CameraSettings();
     
     public void Render(
         ScriptableRenderContext context, Camera camera, bool allowHDR,
@@ -43,6 +45,14 @@ public partial class CameraRenderer
         _context = context;
         _camera = camera;
 
+        var orpCamera = _camera.GetComponent<CustomRenderPipelineCamera>();
+        CameraSettings cameraSettings = orpCamera ? orpCamera.Settings : _defaultCameraSettings;
+
+        if (cameraSettings.overridePostFX)
+        {
+            postFXSettings = cameraSettings.postFXSettings;
+        }
+        
         PrepareBuffer();
         PrepareForSceneWindow();
         
@@ -54,7 +64,7 @@ public partial class CameraRenderer
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
         _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject);  // 灯光设置
-        _postFXStack.Setup(context, camera, postFXSettings, _useHDR, colorLUTResolution);    // 后处理设置
+        _postFXStack.Setup(context, camera, postFXSettings, _useHDR, colorLUTResolution, cameraSettings.finalBlendMode);    // 后处理设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置
