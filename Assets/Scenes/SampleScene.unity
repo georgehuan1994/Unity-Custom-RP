@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.103773594, g: 0.103773594, b: 0.103773594, a: 1}
+  m_AmbientSkyColor: {r: 0, g: 0, b: 0, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 0
@@ -971,7 +971,7 @@ GameObject:
   - component: {fileID: 48588566}
   - component: {fileID: 48588565}
   - component: {fileID: 48588564}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1166,7 +1166,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &53227370
 Transform:
   m_ObjectHideFlags: 0
@@ -1293,7 +1293,7 @@ GameObject:
   - component: {fileID: 65033791}
   - component: {fileID: 65033790}
   - component: {fileID: 65033789}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2021,7 +2021,7 @@ GameObject:
   - component: {fileID: 94029106}
   - component: {fileID: 94029105}
   - component: {fileID: 94029104}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2622,7 +2622,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 51
+    m_Bits: 4294967295
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -2852,7 +2852,7 @@ GameObject:
   - component: {fileID: 145691032}
   - component: {fileID: 145691031}
   - component: {fileID: 145691030}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2951,7 +2951,7 @@ GameObject:
   - component: {fileID: 156772844}
   - component: {fileID: 156772843}
   - component: {fileID: 156772842}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3858,7 +3858,7 @@ GameObject:
   - component: {fileID: 211733521}
   - component: {fileID: 211733520}
   - component: {fileID: 211733519}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4052,7 +4052,7 @@ GameObject:
   - component: {fileID: 217443803}
   - component: {fileID: 217443802}
   - component: {fileID: 217443801}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (8)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4803,7 +4803,7 @@ GameObject:
   - component: {fileID: 276534378}
   - component: {fileID: 276534377}
   - component: {fileID: 276534376}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5047,7 +5047,7 @@ GameObject:
   - component: {fileID: 279039168}
   - component: {fileID: 279039167}
   - component: {fileID: 279039166}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube_Top
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7813,7 +7813,7 @@ GameObject:
   - component: {fileID: 458649518}
   - component: {fileID: 458649517}
   - component: {fileID: 458649516}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10034,7 +10034,7 @@ GameObject:
   - component: {fileID: 660423791}
   - component: {fileID: 660423790}
   - component: {fileID: 660423789}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11167,7 +11167,7 @@ GameObject:
   - component: {fileID: 733628147}
   - component: {fileID: 733628146}
   - component: {fileID: 733628145}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13477,7 +13477,7 @@ GameObject:
   - component: {fileID: 894536586}
   - component: {fileID: 894536585}
   - component: {fileID: 894536584}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13576,7 +13576,7 @@ GameObject:
   - component: {fileID: 894674068}
   - component: {fileID: 894674067}
   - component: {fileID: 894674066}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13675,7 +13675,7 @@ GameObject:
   - component: {fileID: 909657658}
   - component: {fileID: 909657657}
   - component: {fileID: 909657656}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14869,7 +14869,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 992350872}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Opaque
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15267,7 +15267,7 @@ GameObject:
   - component: {fileID: 1007863270}
   - component: {fileID: 1007863269}
   - component: {fileID: 1007863268}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15648,7 +15648,7 @@ GameObject:
   - component: {fileID: 1018492952}
   - component: {fileID: 1018492951}
   - component: {fileID: 1018492950}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16666,7 +16666,7 @@ GameObject:
   - component: {fileID: 1077438753}
   - component: {fileID: 1077438752}
   - component: {fileID: 1077438751}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17639,7 +17639,7 @@ GameObject:
   - component: {fileID: 1189315100}
   - component: {fileID: 1189315099}
   - component: {fileID: 1189315098}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17880,7 +17880,7 @@ GameObject:
   - component: {fileID: 1197213824}
   - component: {fileID: 1197213823}
   - component: {fileID: 1197213822}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -18329,7 +18329,7 @@ GameObject:
   - component: {fileID: 1223947797}
   - component: {fileID: 1223947796}
   - component: {fileID: 1223947795}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube_Back
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22701,7 +22701,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1447467670
 Transform:
   m_ObjectHideFlags: 0
@@ -23103,7 +23103,7 @@ GameObject:
   - component: {fileID: 1464654884}
   - component: {fileID: 1464654883}
   - component: {fileID: 1464654882}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25487,7 +25487,7 @@ GameObject:
   - component: {fileID: 1636453741}
   - component: {fileID: 1636453740}
   - component: {fileID: 1636453739}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -26225,7 +26225,7 @@ GameObject:
   - component: {fileID: 1675875628}
   - component: {fileID: 1675875627}
   - component: {fileID: 1675875626}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (7)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27234,14 +27234,14 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2147483647
   m_Lightmapping: 1
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: -2.2063019e-34, z: 4.5904e-41, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 0.27662873, z: 4.5904e-41, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -28133,7 +28133,7 @@ GameObject:
   - component: {fileID: 1769044003}
   - component: {fileID: 1769044002}
   - component: {fileID: 1769044001}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -28331,7 +28331,7 @@ GameObject:
   - component: {fileID: 1771464665}
   - component: {fileID: 1771464664}
   - component: {fileID: 1771464663}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -28857,7 +28857,7 @@ GameObject:
   - component: {fileID: 1806960540}
   - component: {fileID: 1806960539}
   - component: {fileID: 1806960538}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube_Bottom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -30153,7 +30153,7 @@ GameObject:
   - component: {fileID: 1899138268}
   - component: {fileID: 1899138267}
   - component: {fileID: 1899138266}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31206,7 +31206,7 @@ GameObject:
   - component: {fileID: 1968585477}
   - component: {fileID: 1968585476}
   - component: {fileID: 1968585475}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube_R
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31740,7 +31740,7 @@ GameObject:
   - component: {fileID: 1982835934}
   - component: {fileID: 1982835933}
   - component: {fileID: 1982835932}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32015,7 +32015,7 @@ GameObject:
   - component: {fileID: 1991709540}
   - component: {fileID: 1991709539}
   - component: {fileID: 1991709538}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cube_L
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32117,7 +32117,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1995986542
 Transform:
   m_ObjectHideFlags: 0
@@ -32984,14 +32984,14 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 2147483647
   m_Lightmapping: 1
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1, y: 0, z: 0, w: 1}
+  m_BoundingSphereOverride: {x: 0, y: 0.27662873, z: 4.5904e-41, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -33125,7 +33125,7 @@ GameObject:
   - component: {fileID: 2045705912}
   - component: {fileID: 2045705911}
   - component: {fileID: 2045705910}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}

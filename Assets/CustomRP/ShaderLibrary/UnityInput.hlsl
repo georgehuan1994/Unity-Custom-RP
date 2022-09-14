@@ -12,6 +12,9 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     float4 unity_WorldTransformParams;
 
+    // Rendering Layer x-位掩码
+    float4 unity_RenderingLayer;
+
     real4 unity_LightData;          // y 分量为每物体光源数量
     real4 unity_LightIndices[2];    // 两个 Vector4 共 8 个每物体的光源索引
 

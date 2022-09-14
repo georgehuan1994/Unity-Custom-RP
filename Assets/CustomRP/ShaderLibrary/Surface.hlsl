@@ -17,6 +17,7 @@ struct Surface
     float smoothness;
     float fresnelStrength;
     float dither;   // 抖动值
+    uint renderingLayerMask;    // 位掩码
 };
 
 #endif

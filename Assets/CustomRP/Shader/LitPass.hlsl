@@ -109,6 +109,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET
     surface.smoothness = GetSmoothness(config);
     surface.fresnelStrength = GetFresnel(config);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+    surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 
     #if defined(_PREMULTIPLY_ALPHA)
     BRDF brdf = GetBRDF(surface, true);

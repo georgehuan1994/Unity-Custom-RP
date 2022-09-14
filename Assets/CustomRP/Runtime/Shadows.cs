@@ -351,7 +351,10 @@ public class Shadows  // 在 Lighting 实例化并持有
         ShadowedDirectionalLight light = _shadowedDirectionalLights[index];
         
         // 使用剔除结果构造上下文所需的 DrawShadowsSettings
-        var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex);
+        var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex)
+        {
+            useRenderingLayerMaskTest = true
+        };
 
         int cascadeCount = _settings.directional.cascadeCount;
         int tileOffset = index * cascadeCount;
@@ -471,7 +474,10 @@ public class Shadows  // 在 Lighting 实例化并持有
     private void RenderSpotShadows(int index, int split, int tileSize)
     {
         ShadowedOtherLight light = _shadowedOtherLights[index];
-        var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex);
+        var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex)
+        {
+            useRenderingLayerMaskTest = true
+        };
         
         _cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(light.visibleLightIndex, 
             out Matrix4x4 viewMatrix,
@@ -504,7 +510,10 @@ public class Shadows  // 在 Lighting 实例化并持有
     private void RenderPointShadows(int index, int split, int tileSize)
     {
         ShadowedOtherLight light = _shadowedOtherLights[index];
-        var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex);
+        var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex)
+        {
+            useRenderingLayerMaskTest = true
+        };
 
         // Normal Bias
         float texelSize = 2f / tileSize;
