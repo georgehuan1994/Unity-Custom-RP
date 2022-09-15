@@ -63,13 +63,14 @@ public partial class CameraRenderer
         
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
-        _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject);  // 灯光设置
+        _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject, 
+            cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);  // 灯光设置
         _postFXStack.Setup(context, camera, postFXSettings, _useHDR, colorLUTResolution, cameraSettings.finalBlendMode);    // 后处理设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置
         
-        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
+        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject, cameraSettings.renderingLayerMask);
         
 #if UNITY_EDITOR
         DrawUnSupportShaders();
@@ -143,13 +144,16 @@ public partial class CameraRenderer
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
     }
-    
+
     /// <summary>
     /// 绘制可见几何体
     /// </summary>
     /// <param name="useDynamicBatching">是否使用动态批处理</param>
     /// <param name="useGPUInstancing">是否使用 GPU 实例化</param>
-    private void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject)
+    /// <param name="useLightsPerObject"></param>
+    /// <param name="renderingLayerMask"></param>
+    private void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
+        int renderingLayerMask)
     {
         PerObjectData lightsPerObjectFlags = useLightsPerObject ? 
                 PerObjectData.LightData | PerObjectData.LightIndices : 
@@ -172,7 +176,8 @@ public partial class CameraRenderer
         drawingSettings.SetShaderPassName(1, _litShaderTagId);
         
         // 仅渲染不透明队列
-        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+        var filteringSettings =
+            new FilteringSettings(RenderQueueRange.opaque, renderingLayerMask: (uint)renderingLayerMask);
         
         // 使用剔除结果作为参数，调用上下文的 DrawRenderers 方法
         _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);

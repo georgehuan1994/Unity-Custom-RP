@@ -29,6 +29,7 @@ Varyings MetaPassVertex (Attributes input)
     // 不明白这里为什么要这样写，直接 TransformObjectToHClip 效果也没区别
     // 可能有些烘焙器是从光照贴图的 uv 来获取着色点对象空间坐标
     input.positionOS.xy = input.lightMapUV * unity_LightmapST.xy + unity_LightmapST.zw;
+    // input.positionOS.xy = input.lightMapUV;
     input.positionOS.z = input.positionOS.z > 0.0 ? FLT_MIN : 0.0;  // 不能抛弃 Z 坐标，否则 OpenGL 无法正常工作
     output.positionCS = TransformWorldToHClip(input.positionOS);
 

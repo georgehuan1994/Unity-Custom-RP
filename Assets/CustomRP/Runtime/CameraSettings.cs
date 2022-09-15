@@ -9,6 +9,11 @@ public class CameraSettings
     {
         public BlendMode source, destination;
     }
+    
+    [RenderingLayerMaskField]
+    public int renderingLayerMask = -1;
+
+    public bool maskLights = false;
 
     public bool overridePostFX = false;
 

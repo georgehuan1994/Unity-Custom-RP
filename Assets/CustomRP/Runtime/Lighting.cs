@@ -45,12 +45,13 @@ public class Lighting
 
     private Shadows _shadows = new Shadows();
     
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings, bool useLightsPerObject)
+    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings, 
+        bool useLightsPerObject, int renderingLayerMask)
     {
         _cullingResults = cullingResults;
         _buffer.BeginSample(BufferName);
         _shadows.Setup(context, cullingResults, shadowSettings);    // 在 SetupLight 前，先 SetupShadow
-        SetupLights(useLightsPerObject);
+        SetupLights(useLightsPerObject, renderingLayerMask);
         _shadows.Render();
         _buffer.EndSample(BufferName);
         
@@ -61,7 +62,7 @@ public class Lighting
     /// <summary>
     /// 设置光源信息，将光源信息发送个 GPU，Light.hlsl -> CBUFFER _CustomLight
     /// </summary>
-    private void SetupLights(bool useLightsPerObject)
+    private void SetupLights(bool useLightsPerObject, int renderingLayerMask)
     {
         // 从剔除结果中获取每物体光源列表
         NativeArray<int> indexMap = useLightsPerObject ? _cullingResults.GetLightIndexMap(Allocator.Temp) : default;
@@ -79,37 +80,42 @@ public class Lighting
             int newIndex = -1;
             VisibleLight visibleLight = visibleLights[i];
             Light light = visibleLight.light;
-            
-            // 检查灯光类型
-            switch (visibleLight.lightType)
+
+            // 检查相机的 Rendering Layer 是否包含此光源
+            if ((light.renderingLayerMask & renderingLayerMask) != 0)
             {
-                case LightType.Spot:
-                    if (otherLightCount < MAXOhterLightCount)
-                    {
-                        newIndex = otherLightCount;
-                        SetupSpotLight(otherLightCount++, i, ref visibleLight, light);
-                    }
-                    break;
-                case LightType.Directional:
-                    if (dirLightCount < MAXDirectionLightCount)
-                    {
-                        SetupDirectionalLight(dirLightCount++, i, ref visibleLight, light);
-                    }
-                    break;
-                case LightType.Point:
-                    if (otherLightCount < MAXOhterLightCount)
-                    {
-                        newIndex = otherLightCount;
-                        SetupPointLight(otherLightCount++, i, ref visibleLight, light);
-                    }
-                    break;
-                case LightType.Area:
-                    break;
-                case LightType.Disc:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                // 检查灯光类型
+                switch (visibleLight.lightType)
+                {
+                    case LightType.Spot:
+                        if (otherLightCount < MAXOhterLightCount)
+                        {
+                            newIndex = otherLightCount;
+                            SetupSpotLight(otherLightCount++, i, ref visibleLight, light);
+                        }
+                        break;
+                    case LightType.Directional:
+                        if (dirLightCount < MAXDirectionLightCount)
+                        {
+                            SetupDirectionalLight(dirLightCount++, i, ref visibleLight, light);
+                        }
+                        break;
+                    case LightType.Point:
+                        if (otherLightCount < MAXOhterLightCount)
+                        {
+                            newIndex = otherLightCount;
+                            SetupPointLight(otherLightCount++, i, ref visibleLight, light);
+                        }
+                        break;
+                    case LightType.Area:
+                        break;
+                    case LightType.Disc:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+            
             if (useLightsPerObject)
             {
                 indexMap[i] = newIndex;
