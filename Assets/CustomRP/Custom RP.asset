@@ -18,19 +18,19 @@ MonoBehaviour:
   useSRPBatcher: 0
   useLightsPerObject: 1
   shadowSettings:
-    maxDistance: 20
-    distanceFade: 0.2
+    maxDistance: 40
+    distanceFade: 1
     directional:
       atlasSize: 2048
       filter: 3
-      cascadeCount: 1
+      cascadeCount: 4
       cascadeRatio1: 0.2
       cascadeRatio2: 0.3
       cascadeRatio3: 0.5
       cascadeFade: 1
-      cascadeBlend: 2
+      cascadeBlend: 1
     other:
       atlasSize: 2048
-      filter: 3
+      filter: 2
   postFXSettings: {fileID: 11400000, guid: 1256c71edcfcd2741a5a5996d5c804b4, type: 2}
   colorLutResolution: 32

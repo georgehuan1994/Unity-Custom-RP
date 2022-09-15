@@ -532,9 +532,9 @@ public class Shadows  // 在 Lighting 实例化并持有
                 out Matrix4x4 projMatrix, 
                 out ShadowSplitData splitData);
             
-            // viewMatrix.m11 = -viewMatrix.m11;
-            // viewMatrix.m12 = -viewMatrix.m12;
-            // viewMatrix.m13 = -viewMatrix.m13;
+            viewMatrix.m11 = -viewMatrix.m11;
+            viewMatrix.m12 = -viewMatrix.m12;
+            viewMatrix.m13 = -viewMatrix.m13;
             
             shadowSettings.splitData = splitData;
 

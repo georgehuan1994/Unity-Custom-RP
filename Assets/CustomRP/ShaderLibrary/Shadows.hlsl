@@ -121,9 +121,14 @@ ShadowData GetShadowData(Surface surfaceWS)
         float distanceSqr = DistanceSqure(surfaceWS.position, sphere.xyz);
         if (distanceSqr < sphere.w)
         {
+            float fade = FadeShadowStrength(distanceSqr, _CascadeData[i].x, _ShadowDistanceFade.z);
             if (i == _CascadeCount - 1)
             {
-                data.strength *= FadeShadowStrength(distanceSqr, _CascadeData[i].x, _ShadowDistanceFade.z);
+                data.strength *= fade;
+            }
+            else
+            {
+                data.cascadeBlend = fade;
             }
             break;
         }
@@ -184,8 +189,8 @@ float SampleOtherShadowAtlas(float3 positionSTS, float3 bounds)
 float FilterOtherShadow(float3 positionSTS, float3 bounds)
 {
     #if defined(OTHER_FILTER_SETUP)
-    float weights[OTHER_FILTER_SAMPLES];
-    float2 positions[OTHER_FILTER_SAMPLES];
+    real weights[OTHER_FILTER_SAMPLES];
+    real2 positions[OTHER_FILTER_SAMPLES];
     float4 size = _ShadowAtlasSize.wwzz;
     OTHER_FILTER_SETUP(size, positionSTS.xy, weights, positions);
     float shadow = 0;
@@ -354,10 +359,11 @@ float GetOtherLightShadowAttenuation(OtherShadowData other, ShadowData global, S
     else
     {
         shadow = GetOtherShadow(other, global, surfaceWS);
-        shadow = MixBakedAndRealtimeShadows(global, shadow, other.shadowMaskChannel, abs(other.strength));
+        shadow = MixBakedAndRealtimeShadows(global, shadow, other.shadowMaskChannel, other.strength);
     }
     
-    return shadow;
+    return max(0, shadow - 0.2);
+    // return shadow;
 }
 
 
