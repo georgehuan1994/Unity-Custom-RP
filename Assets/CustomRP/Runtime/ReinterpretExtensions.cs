@@ -15,4 +15,21 @@ public static class ReinterpretExtensions
         converter.intValue = value;
         return converter.floatValue;
     }
+
+    // class MyClass
+    // {
+    //     private float _x = 0;
+    //
+    //     public int x
+    //     {
+    //         set
+    //         {
+    //             _x = (float)value;
+    //         }
+    //         get
+    //         {
+    //             return (int)_x;
+    //         }
+    //     }
+    // }
 }
