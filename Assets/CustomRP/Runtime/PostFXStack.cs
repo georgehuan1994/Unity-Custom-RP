@@ -280,18 +280,16 @@ public partial class PostFXStack
         _buffer.SetGlobalFloat(_bloomBicubicUpsamplingId, bloom.bicubicUpsampling ? 1f : 0f);
 
         Pass combinePass;
-        Pass finalPass;
         float finalIntensity;
         if (bloom.mode == PostFXSettings.BloomSettings.Mode.Additive)
         {
-            combinePass = finalPass = Pass.BloomAdd;
+            combinePass = Pass.BloomAdd;
             _buffer.SetGlobalFloat(_bloomIntensityId, 1);
             finalIntensity = bloom.intensity;
         }
         else
         {
             combinePass = Pass.BloomScatter;
-            finalPass = Pass.BloomScatterFinal;
             _buffer.SetGlobalFloat(_bloomIntensityId, bloom.scatter);
             finalIntensity = Mathf.Min(bloom.intensity, 0.95f);
         }

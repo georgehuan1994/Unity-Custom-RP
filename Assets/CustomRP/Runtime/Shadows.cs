@@ -180,7 +180,7 @@ public class Shadows  // 在 Lighting 实例化并持有
                 maskChannel);
         }
 
-        return new Vector4(0, 0, 0, -1);
+        return new Vector4(0f, 0f, 0f, -1f);
     }
 
     /// <summary>
@@ -199,15 +199,21 @@ public class Shadows  // 在 Lighting 实例化并持有
         float maskChannel = -1f;
 
         LightBakingOutput lightBaking = light.bakingOutput;
-        if (light)
+        if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
+            lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
         {
-            if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
-                lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
-            {
-                _useShadowMask = true;
-                maskChannel = lightBaking.occlusionMaskChannel;
-            }
+            _useShadowMask = true;
+            maskChannel = lightBaking.occlusionMaskChannel;
         }
+        // if (light)
+        // {
+        //     if (lightBaking.lightmapBakeType == LightmapBakeType.Mixed &&
+        //         lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+        //     {
+        //         _useShadowMask = true;
+        //         maskChannel = lightBaking.occlusionMaskChannel;
+        //     }
+        // }
 
         // 点光源需要占用六个 Tile
         bool isPoint = light.type == LightType.Point;
@@ -278,7 +284,7 @@ public class Shadows  // 在 Lighting 实例化并持有
             new Vector4(
                 1f / _settings.maxDistance,
                 1f / _settings.distanceFade, 
-                1f / (1f - f *f)));
+                1f / (1f - f * f)));
         
         // 将平行光阴影图集尺寸发送到 GPU
         _buffer.SetGlobalVector(_shadowAtlasSizeId, _atlasSizes);
@@ -361,6 +367,7 @@ public class Shadows  // 在 Lighting 实例化并持有
         Vector3 ratios = _settings.directional.CascadeRatios;
         
         float cullingFactor = Mathf.Max(0f, 0.8f - _settings.directional.cascadeFade);
+        float tileScale = 1f / split;
         
         for (int i = 0; i < cascadeCount; i++)
         {
@@ -378,15 +385,15 @@ public class Shadows  // 在 Lighting 实例化并持有
             if (index == 0)
             {
                 SetCascadeData(i, splitData.cullingSphere, tileSize);
-                
-                // 将 w 分量储存为 w^2，这样就不用在着色器中计算了
-                Vector4 cullingSphere = splitData.cullingSphere;
-                cullingSphere.w *= cullingSphere.w;
-                _cascadeCullingSpheres[i] = cullingSphere;
             }
 
+            // 将 w 分量储存为 w^2，这样就不用在着色器中计算了
+            // Vector4 cullingSphere = splitData.cullingSphere;
+            // cullingSphere.w *= cullingSphere.w;
+            // _cascadeCullingSpheres[i] = cullingSphere;
+            
             int tileIndex = tileOffset + i;
-            float tileScale = 1f / split;
+            // float tileScale = 1f / split;
             
             // 分割图集，并计算 阴影矩阵 = 投影矩阵 × 视图矩阵
             _dirShadowMatrices[tileIndex] =
@@ -396,14 +403,14 @@ public class Shadows  // 在 Lighting 实例化并持有
             _buffer.SetViewProjectionMatrices(viewMatrix, projMatrix);
             
             // 深度偏差
-            _buffer.SetGlobalDepthBias(0, light.slopeScaleBias);
+            _buffer.SetGlobalDepthBias(0f, light.slopeScaleBias);
             
             ExecuteBuffer();
         
             // 为单个光源应用标签名为 ShadowCaster 的着色器 Pass
             _context.DrawShadows(ref shadowSettings);
             
-            _buffer.SetGlobalDepthBias(0, 0f);
+            _buffer.SetGlobalDepthBias(0f, 0f);
         }
     }
     
@@ -426,6 +433,8 @@ public class Shadows  // 在 Lighting 实例化并持有
         
         // 清理 RenderTarget
         _buffer.ClearRenderTarget(true, false, Color.clear);
+        // 设置 _ShadowPancaking 开闭状态
+        _buffer.SetGlobalFloat(_shadowPancakingId, 0f);
         
         _buffer.BeginSample(BufferName);
         ExecuteBuffer();
@@ -458,8 +467,8 @@ public class Shadows  // 在 Lighting 实例化并持有
         // 设置 Filter 关键字
         SetKeywords(_otherFilterKeywords, (int) _settings.other.filter - 1);
         
-        // 设置 _ShadowPancaking 开闭状态
-        _buffer.SetGlobalFloat(_shadowPancakingId, 0f);
+        // 设置 _ShadowPancaking 开闭状态，写在这里会有问题
+        // _buffer.SetGlobalFloat(_shadowPancakingId, 0f);
         
         _buffer.EndSample(BufferName);
         ExecuteBuffer();
@@ -479,7 +488,8 @@ public class Shadows  // 在 Lighting 实例化并持有
             useRenderingLayerMaskTest = true
         };
         
-        _cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(light.visibleLightIndex, 
+        _cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(
+            light.visibleLightIndex, 
             out Matrix4x4 viewMatrix,
             out Matrix4x4 projMatrix,
             out ShadowSplitData splitData);
@@ -509,7 +519,7 @@ public class Shadows  // 在 Lighting 实例化并持有
     
     private void RenderPointShadows(int index, int split, int tileSize)
     {
-        ShadowedOtherLight light = _shadowedOtherLights[index];
+        ShadowedOtherLight light = _shadowedOtherLights[index]; 
         var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.visibleLightIndex)
         {
             useRenderingLayerMaskTest = true
@@ -525,7 +535,8 @@ public class Shadows  // 在 Lighting 实例化并持有
         
         for (int i = 0; i < 6; i++)
         {
-            _cullingResults.ComputePointShadowMatricesAndCullingPrimitives(light.visibleLightIndex, 
+            _cullingResults.ComputePointShadowMatricesAndCullingPrimitives(
+                light.visibleLightIndex, 
                 (CubemapFace)i, 
                 fovBias,
                 out Matrix4x4 viewMatrix,
@@ -626,7 +637,7 @@ public class Shadows  // 在 Lighting 实例化并持有
     private Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, float scale)
     {
         // 如果 Z-Buffer 是反向的，那么反转 Z
-        if (SystemInfo.usesReversedZBuffer)
+        if (SystemInfo.usesReversedZBuffer) 
         {
             m.m20 = -m.m20;
             m.m21 = -m.m21;
@@ -646,7 +657,6 @@ public class Shadows  // 在 Lighting 实例化并持有
         m.m21 = 0.5f * (m.m21 + m.m31);
         m.m22 = 0.5f * (m.m22 + m.m32);
         m.m23 = 0.5f * (m.m23 + m.m33);
-        
         return m;
     }
     

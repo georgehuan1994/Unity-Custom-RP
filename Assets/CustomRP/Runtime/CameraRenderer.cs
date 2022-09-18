@@ -45,8 +45,8 @@ public partial class CameraRenderer
         _context = context;
         _camera = camera;
 
-        var orpCamera = _camera.GetComponent<CustomRenderPipelineCamera>();
-        CameraSettings cameraSettings = orpCamera ? orpCamera.Settings : _defaultCameraSettings;
+        var crpCamera = _camera.GetComponent<CustomRenderPipelineCamera>();
+        CameraSettings cameraSettings = crpCamera ? crpCamera.Settings : _defaultCameraSettings;
 
         if (cameraSettings.overridePostFX)
         {
@@ -165,10 +165,10 @@ public partial class CameraRenderer
         {
             enableDynamicBatching = useDynamicBatching,
             enableInstancing = useGPUInstancing,
-            perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
+            perObjectData = PerObjectData.ReflectionProbes |
+                            PerObjectData.Lightmaps | PerObjectData.ShadowMask | 
                             PerObjectData.LightProbe | PerObjectData.OcclusionProbe | 
                             PerObjectData.LightProbeProxyVolume | PerObjectData.OcclusionProbeProxyVolume |
-                            PerObjectData.ReflectionProbes |
                             lightsPerObjectFlags
         };
         

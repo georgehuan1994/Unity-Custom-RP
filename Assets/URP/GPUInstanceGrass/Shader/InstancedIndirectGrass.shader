@@ -67,7 +67,7 @@ Shader "Grass/InstancedIndirectGrass"
 
             struct Varyings
             {
-                float4 positionCS  : SV_POSITION;
+                float4 positionCS_SS  : SV_POSITION;
                 half3 color        : COLOR;
             };
 
@@ -196,7 +196,7 @@ Shader "Grass/InstancedIndirectGrass"
                 // =========================================
                 
                 // 将顶点转换到齐次裁剪空间
-                OUT.positionCS = TransformWorldToHClip(positionWS);
+                OUT.positionCS_SS = TransformWorldToHClip(positionWS);
                 
 
                 // Lighting & Color
@@ -241,7 +241,7 @@ Shader "Grass/InstancedIndirectGrass"
 
                 // Fog
                 // =========================================
-                float fogFactor = ComputeFogFactor(OUT.positionCS.z);
+                float fogFactor = ComputeFogFactor(OUT.positionCS_SS.z);
                 // =========================================
 
                 OUT.color = MixFog(lightingResult, fogFactor);

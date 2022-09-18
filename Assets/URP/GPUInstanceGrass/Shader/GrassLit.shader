@@ -42,7 +42,7 @@ Shader "Unlit/GrassLit"
 
             struct Varyings
             {
-                float4 positionCS : SV_POSITION;
+                float4 positionCS_SS : SV_POSITION;
                 half3 color       : COLOR;
             };
 
@@ -127,7 +127,7 @@ Shader "Unlit/GrassLit"
 #endif
                 // =========================================
                 
-                OUT.positionCS = TransformWorldToHClip(positionWS);
+                OUT.positionCS_SS = TransformWorldToHClip(positionWS);
                 OUT.color = lightingResult;
                 return  OUT;
             }

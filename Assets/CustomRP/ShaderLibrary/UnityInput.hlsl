@@ -47,6 +47,10 @@ float4x4 unity_MatrixV;
 float4x4 unity_MatrixVP;
 float4x4 glstate_matrix_projection;
 
+// 正交相机参数
+// w = 1，正交模式
+float4 unity_OrthoParams;
+
 // 用于判断 uv 的朝向
 // x 是 1.0（如果当前使用翻转投影矩阵进行渲染，则为 –1.0），y 是摄像机的近平面，z 是摄像机的远平面，w 是远平面的倒数
 float4 _ProjectionParams;

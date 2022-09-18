@@ -87,13 +87,6 @@ public class Lighting
                 // 检查灯光类型
                 switch (visibleLight.lightType)
                 {
-                    case LightType.Spot:
-                        if (otherLightCount < MAXOhterLightCount)
-                        {
-                            newIndex = otherLightCount;
-                            SetupSpotLight(otherLightCount++, i, ref visibleLight, light);
-                        }
-                        break;
                     case LightType.Directional:
                         if (dirLightCount < MAXDirectionLightCount)
                         {
@@ -107,12 +100,13 @@ public class Lighting
                             SetupPointLight(otherLightCount++, i, ref visibleLight, light);
                         }
                         break;
-                    case LightType.Area:
+                    case LightType.Spot:
+                        if (otherLightCount < MAXOhterLightCount)
+                        {
+                            newIndex = otherLightCount;
+                            SetupSpotLight(otherLightCount++, i, ref visibleLight, light);
+                        }
                         break;
-                    case LightType.Disc:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
             }
             
@@ -164,6 +158,7 @@ public class Lighting
     /// <param name="index">平行可见光索引</param>
     /// <param name="visibleIndex">可见光索引</param>
     /// <param name="visibleLight">可见光</param>
+    /// <param name="light"></param>
     private void SetupDirectionalLight(int index, int visibleIndex, ref VisibleLight visibleLight, Light light)
     {
         _dirLightColors[index] = visibleLight.finalColor;
@@ -192,6 +187,7 @@ public class Lighting
     /// <param name="index">非平行可见光索引</param>
     /// <param name="visibleIndex">可见光索引</param>
     /// <param name="visibleLight">可见光</param>
+    /// <param name="light"></param>
     private void SetupPointLight(int index, int visibleIndex, ref VisibleLight visibleLight, Light light)
     {
         // 颜色 x 强度

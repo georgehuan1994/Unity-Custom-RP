@@ -12,7 +12,7 @@ struct Attributes
 
 struct Varyings
 {
-    float4 positionCS : SV_POSITION;
+    float4 positionCS_SS : SV_POSITION;
     float2 baseUV : VAR_BASE_UV;    // VAR_BASE_UV 没有特别的语义，只是一个自定义的标识
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输出结构中
 };
@@ -29,14 +29,14 @@ Varyings ShadowCasterPassVertex(Attributes input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     
     float3 positionWS = TransformObjectToWorld(input.positionOS);
-    output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS_SS = TransformWorldToHClip(positionWS);
 
     if (_ShadowPancaking)
     {
         #if UNITY_REVERSED_Z
-        output.positionCS.z = min(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+        output.positionCS_SS.z = min(output.positionCS_SS.z, output.positionCS_SS.w * UNITY_NEAR_CLIP_VALUE);
         #else
-        output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
+        output.positionCS_SS.z = max(output.positionCS_SS.z, output.positionCS_SS.w * UNITY_NEAR_CLIP_VALUE);
         #endif 
     }
     
@@ -48,17 +48,16 @@ Varyings ShadowCasterPassVertex(Attributes input)
 void ShadowCasterPassFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
-
-    ClipLOD(input.positionCS.xy, unity_LODFade.x);
     
-    InputConfig config = GetInputConfig(input.baseUV);
+    InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+    ClipLOD(config.fragment, unity_LODFade.x);
     float4 base = GetBase(config);
     
     #if defined(_SHADOWS_CLIP)
         clip(base.a - GetCutoff(config));
     #elif defined(_SHADOWS_DITHER)
         // 根据给定的屏幕空间 XY 坐标生成随机值，第二个参数即是否需要动起来，这里置为 0
-        float dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+        float dither = InterleavedGradientNoise(input.positionCS_SS.xy, 0);
         clip(base.a - dither);
     #endif
 }

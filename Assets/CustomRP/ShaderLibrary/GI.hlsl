@@ -87,6 +87,11 @@ float3 SampleLightProbe(Surface surfaceWS)
     #endif
 }
 
+float4 SampleLightProbeOcclusion (Surface surfaceWS)
+{
+    return unity_ProbesOcclusion;
+}
+
 // 采样阴影贴图
 float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS)
 {

@@ -6,14 +6,32 @@
 struct Attributes
 {
     float3 positionOS : POSITION;
-    float2 baseUV : TEXCOORD0;
+    float4 color : COLOR;           // 顶点颜色
+    
+    #if defined(_FLIPBOOK_BLENDING)
+        float4 baseUV : TEXCOORD0;          // UV2
+        float flipbookBlending : TEXCOORD1; // Flipbook 混合因子
+    #else
+        float2 baseUV : TEXCOORD0;
+    #endif
+    
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输入结构中
 };
 
 struct Varyings
 {
-    float4 positionCS : SV_POSITION;
+    float4 positionCS_SS : SV_POSITION; // 屏幕空间位置
+    
+    #if defined(_VERTEX_COLORS)
+        float4 color : VAR_COLOR;   // 如果使用了顶点色，将其传递给片元着色器
+    #endif
+
     float2 baseUV : VAR_BASE_UV;    // VAR_BASE_UV 没有特别的语义，只是一个自定义的标识
+
+    #if defined(_FLIPBOOK_BLENDING)
+        float3 flipbookUVB : VAR_FLIPBOOK;  // UV2 和 Flipbook Blending Factory
+    #endif
+
     UNITY_VERTEX_INPUT_INSTANCE_ID  // 将对象的索引添加到顶点着色器输出结构中
 };
 
@@ -26,12 +44,16 @@ Varyings UnlitPassVertex (Attributes input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     
     float3 positionWS = TransformObjectToWorld(input.positionOS);
-    output.positionCS = TransformWorldToHClip(positionWS);
-
-    // 访问实例化常量缓冲区中的每个实例着色器属性
-    // float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
-    // output.baseUV = input.baseUV * baseST.xy + baseST.zw;
-    output.baseUV = TransformBaseUV(input.baseUV);
+    output.positionCS_SS = TransformWorldToHClip(positionWS);
+    #if defined(_VERTEX_COLORS)
+        output.color = input.color;
+    #endif
+    
+    output.baseUV.xy = TransformBaseUV(input.baseUV.xy);
+    #if defined(_FLIPBOOK_BLENDING)
+        output.flipbookUVB.xy = TransformBaseUV(input.baseUV.zw);
+        output.flipbookUVB.z = input.flipbookBlending;
+    #endif
     
     return output;
 }
@@ -39,17 +61,27 @@ Varyings UnlitPassVertex (Attributes input)
 float4 UnlitPassFragment (Varyings input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
-
-    // 使用采样器 sampler_BaseMap，从 _BaseMap 中采样
-    // float4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.baseUV);
-    // float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
-    // float4 base = baseMap * baseColor;
     
-    InputConfig config = GetInputConfig(input.baseUV);
+    InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+    // return float4(config.fragment.depth.xxx / 20.0, 1.0);
+    
+    #if defined(_VERTEX_COLORS)
+        config.color = input.color;
+    #endif
+    
+    #if defined(_FLIPBOOK_BLENDING)
+        config.flipbookUVB = input.flipbookUVB;
+        config.flipbookBlending = true;
+    #endif
+
+    #if defined(_NEAR_FADE)
+        config.nearFade = true;
+    #endif
+    
     float4 base = GetBase(config);
     
     #if defined(_CLIPPING)
-    clip(base.a - GetCutoff(config));
+        clip(base.a - GetCutoff(config));
     #endif
     
     return float4(base.rgb, GetFinalAlpha(base.a));

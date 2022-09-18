@@ -163,8 +163,8 @@ float SampleDirectionalShadowAtlas(float3 positionSTS)
 float FilterDirectionalShadow(float3 positionSTS)
 {
     #if defined(DIRECTIONAL_FILTER_SETUP)
-        float weights[DIRECTIONAL_FILTER_SAMPLES];
-        float2 positions[DIRECTIONAL_FILTER_SAMPLES];
+        real weights[DIRECTIONAL_FILTER_SAMPLES];
+        real2 positions[DIRECTIONAL_FILTER_SAMPLES];
         float4 size = _ShadowAtlasSize.yyxx;
         DIRECTIONAL_FILTER_SETUP(size, positionSTS.xy, weights, positions);
         float shadow = 0;
@@ -214,7 +214,7 @@ float GetCascadeShadow(DirectionalShadowData directional, ShadowData global, Sur
     float3 positionSTS = mul(_DirectionalShadowMatrices[directional.tileIndex], float4(surfaceWS.position + normalBias, 1.0)).xyz;
 
     // 采样结果表示有多少光到达了着色点：0 表示完全被阴影覆盖，1 表示完全没有阴影
-    float result = FilterDirectionalShadow(positionSTS.xyz);
+    float result = FilterDirectionalShadow(positionSTS);
 
     if (global.cascadeBlend < 1.0)
     {
@@ -289,7 +289,8 @@ float MixBakedAndRealtimeShadows(ShadowData global, float shadow, int channel, f
     }
     
     // 没有启用则将使用实时阴影
-    return lerp(1.0, shadow, strength * global.strength);
+    // return lerp(1.0, shadow, strength * global.strength); // 实时模式，传进来的 shadow 不为 0，这样写会漏光
+    return lerp(0.0, shadow, strength * global.strength);
 }
 
 // 根据采样结果，返回光照衰减系数 (修正后的阴影强度)
@@ -349,7 +350,7 @@ float GetOtherLightShadowAttenuation(OtherShadowData other, ShadowData global, S
         return 1.0;
     #endif
 
-    float shadow;
+    float shadow = 0.0;
 
     // 光源阴影强度 * 级联阴影强度 来判读是否要跳过采样
     if (other.strength * global.strength <= 0.0)
@@ -362,8 +363,7 @@ float GetOtherLightShadowAttenuation(OtherShadowData other, ShadowData global, S
         shadow = MixBakedAndRealtimeShadows(global, shadow, other.shadowMaskChannel, other.strength);
     }
     
-    return max(0, shadow - 0.2);
-    // return shadow;
+    return shadow;
 }
 
 
