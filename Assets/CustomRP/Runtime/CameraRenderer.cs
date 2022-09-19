@@ -29,14 +29,36 @@ public partial class CameraRenderer
 
     protected PostFXStack _postFXStack = new PostFXStack();
 
-    private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+    // private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+    private static int _colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment");
+    private static int _depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment");
+    private static int _depthTextureId = Shader.PropertyToID("_CameraDepthTexture");
+    private static int _sourceTextureId = Shader.PropertyToID("_SourceTexture");
 
     private bool _useHDR;
+    private bool _useDepthTexture;         // 是否需要复制深度纹理
+    private bool _useIntermediateBuffer;   // 是否使用中间帧缓冲
 
     private int _colorLUTResolution;
 
     private static CameraSettings _defaultCameraSettings = new CameraSettings();
     
+    private Material _material;
+
+    /// <summary>
+    /// CameraRenderer 构造函数
+    /// </summary>
+    /// <param name="shader"></param>
+    public CameraRenderer(Shader shader)
+    {
+        _material = CoreUtils.CreateEngineMaterial(shader);
+    }
+
+    public void Dispose()
+    {
+        CoreUtils.Destroy(_material);
+    }
+
     public void Render(
         ScriptableRenderContext context, Camera camera, bool allowHDR,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
@@ -47,6 +69,8 @@ public partial class CameraRenderer
 
         var crpCamera = _camera.GetComponent<CustomRenderPipelineCamera>();
         CameraSettings cameraSettings = crpCamera ? crpCamera.Settings : _defaultCameraSettings;
+
+        _useDepthTexture = true;
 
         if (cameraSettings.overridePostFX)
         {
@@ -78,7 +102,13 @@ public partial class CameraRenderer
 #endif
         if (_postFXStack.IsActive)
         {
-            _postFXStack.Render(_frameBufferId);
+            // _postFXStack.Render(_frameBufferId);
+            _postFXStack.Render(_colorAttachmentId);
+        }
+        else if(_useIntermediateBuffer)
+        {
+            Draw(_colorAttachmentId, BuiltinRenderTextureType.CameraTarget);
+            ExecuteBuffer();
         }
         
 #if UNITY_EDITOR
@@ -118,7 +148,10 @@ public partial class CameraRenderer
         // 获取相机的 clearFlags
         CameraClearFlags flags = _camera.clearFlags;
         
-        if (_postFXStack.IsActive)
+        // 使用中间帧缓冲
+        _useIntermediateBuffer = _useDepthTexture || _postFXStack.IsActive;
+        
+        if (_useIntermediateBuffer)
         {
             // 除非相机的 clearFlags 为 CameraClearFlags.Skybox = 1，否则清除 颜色缓冲 和 深度缓冲
             if (flags > CameraClearFlags.Color)
@@ -128,11 +161,28 @@ public partial class CameraRenderer
             
             // 获取 _CameraFrameBuffer 相机的中间帧缓冲 (intermediate frame buffer)
             // 并将其设置为 RenderTarget，为处于激活状态的 Post FX Stack 提供源纹理
-            _commandBuffer.GetTemporaryRT(_frameBufferId, _camera.pixelWidth, _camera.pixelHeight, 32,
+            // _commandBuffer.GetTemporaryRT(_frameBufferId, _camera.pixelWidth, _camera.pixelHeight, 32,
+            //     FilterMode.Bilinear,
+            //     _useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+            // _commandBuffer.SetRenderTarget(_frameBufferId, RenderBufferLoadAction.DontCare,
+            //     RenderBufferStoreAction.Store);
+            
+            // 获取颜色缓冲
+            _commandBuffer.GetTemporaryRT(
+                _colorAttachmentId, _camera.pixelWidth, _camera.pixelHeight, 0,
                 FilterMode.Bilinear,
                 _useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
-            _commandBuffer.SetRenderTarget(_frameBufferId, RenderBufferLoadAction.DontCare,
-                RenderBufferStoreAction.Store);
+            
+            // 获取深度缓冲
+            _commandBuffer.GetTemporaryRT(
+                _depthAttachmentId, _camera.pixelWidth, _camera.pixelHeight, 32,
+                FilterMode.Point,
+                RenderTextureFormat.Depth);
+            
+            // 将颜色缓冲和深度缓冲合并，并将其设置为 RenderTarget，为处于激活状态的 Post FX Stack 提供源纹理
+            _commandBuffer.SetRenderTarget(
+                _colorAttachmentId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                _depthAttachmentId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
         }
         
         // 向 command buffer 写入 清理指令
@@ -185,6 +235,9 @@ public partial class CameraRenderer
         // 绘制天空盒
         _context.DrawSkybox(_camera);
         
+        // 复制 Attachment 作为临时纹理
+        CopyAttachments();
+        
         // 渲染排序设置：透明物体排序，与摄像机的距离从远到近
         sortingSettings.criteria = SortingCriteria.CommonTransparent;
         drawingSettings.sortingSettings = sortingSettings;
@@ -194,7 +247,31 @@ public partial class CameraRenderer
         
         _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
     }
+
+    /// <summary>
+    /// 复制 Attachments 为临时纹理
+    /// </summary>
+    private void CopyAttachments()
+    {
+        if (_useDepthTexture)
+        {
+            _commandBuffer.GetTemporaryRT(_depthTextureId, _camera.pixelWidth, _camera.pixelHeight, 32,
+                FilterMode.Point, RenderTextureFormat.Depth);
+            _commandBuffer.CopyTexture(_depthAttachmentId, _depthTextureId);
+            ExecuteBuffer();
+        }
+    }
     
+    private void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to)
+    {
+        // 从标识符为 from 的 RenderTarget 中获取纹理，复制到标识符为 _SourceTexture 的纹理
+        _commandBuffer.SetGlobalTexture(_sourceTextureId, from);
+        // 将标识符为 to 的 RenderTarget 作为绘制目标
+        _commandBuffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        // 使用相机材质在 RenderTarget 上绘制一个很大的三角形
+        _commandBuffer.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
+    }
+
     /// <summary>
     /// 向图形 API 提交上下文，执行预定的命令
     /// </summary>
@@ -218,10 +295,17 @@ public partial class CameraRenderer
     {
         _lighting.Cleanup();    // 提交之前释放阴影贴图
         
-        if (_postFXStack.IsActive)
+        if (_useIntermediateBuffer)
         {
             // 释放临时的 Render Texture
-            _commandBuffer.ReleaseTemporaryRT(_frameBufferId);
+            // _commandBuffer.ReleaseTemporaryRT(_frameBufferId);
+            _commandBuffer.ReleaseTemporaryRT(_colorAttachmentId);
+            _commandBuffer.ReleaseTemporaryRT(_depthAttachmentId);
+            
+            if (_useDepthTexture)
+            {
+                _commandBuffer.ReleaseTemporaryRT(_depthTextureId);
+            }
         }
     }
 }

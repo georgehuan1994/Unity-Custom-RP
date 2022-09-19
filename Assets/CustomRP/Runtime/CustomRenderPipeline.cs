@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 public partial class CustomRenderPipeline : RenderPipeline
 {
-    private CameraRenderer _renderer = new CameraRenderer();
+    private CameraRenderer _renderer;// = new CameraRenderer();
 
     private bool _allowHDR;
     private bool _useDynamicBatching;
@@ -19,9 +19,11 @@ public partial class CustomRenderPipeline : RenderPipeline
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CustomRenderPipeline(bool allowHDR,
+    public CustomRenderPipeline(
+        bool allowHDR,
         bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher, bool userLightsPerObject,
-        ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
+        ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution,
+        Shader cameraRendererShader)
     {
         _allowHDR = allowHDR;
         _useDynamicBatching = useDynamicBatching;
@@ -34,6 +36,8 @@ public partial class CustomRenderPipeline : RenderPipeline
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;
         InitializeForEditor();
+
+        _renderer = new CameraRenderer(cameraRendererShader);
     }
 
     /// <summary>
@@ -48,5 +52,12 @@ public partial class CustomRenderPipeline : RenderPipeline
             _renderer.Render(context, camera, _allowHDR, _useDynamicBatching, _useGPUInstancing, _useLightsPerObject,
                 _shadowSettings, _postFXSettings, _colorLUTResolution);
         }
+    }
+    
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        DisposeForEditor();
+        _renderer.Dispose();
     }
 }

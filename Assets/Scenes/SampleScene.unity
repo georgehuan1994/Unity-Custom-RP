@@ -27829,7 +27829,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1494748090
 Transform:
   m_ObjectHideFlags: 0
@@ -36834,7 +36834,7 @@ MonoBehaviour:
   settings:
     renderingLayerMask: -1
     maskLights: 0
-    overridePostFX: 0
+    overridePostFX: 1
     postFXSettings: {fileID: 0}
     finalBlendMode:
       source: 1

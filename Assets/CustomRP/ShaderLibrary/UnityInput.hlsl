@@ -55,4 +55,8 @@ float4 unity_OrthoParams;
 // x 是 1.0（如果当前使用翻转投影矩阵进行渲染，则为 –1.0），y 是摄像机的近平面，z 是摄像机的远平面，w 是远平面的倒数
 float4 _ProjectionParams;
 
+float4 _ScreenParams;
+
+float4 _ZBufferParams;
+
 #endif
