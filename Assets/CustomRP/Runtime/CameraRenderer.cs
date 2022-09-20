@@ -85,7 +85,7 @@ public partial class CameraRenderer
 
         if (camera.cameraType == CameraType.Reflection)
         {
-            _useDepthTexture = cameraBufferSettings.copyDepthReflections;
+            _useDepthTexture = cameraBufferSettings.copyDepthReflection;
         }
         else
         {
@@ -274,15 +274,17 @@ public partial class CameraRenderer
     /// </summary>
     private void CopyAttachments()
     {
+        // 如果启用了深度贴图复制
         if (_useDepthTexture)
         {
             _commandBuffer.GetTemporaryRT(_depthTextureId, _camera.pixelWidth, _camera.pixelHeight, 32,
                 FilterMode.Point, RenderTextureFormat.Depth);
-            if (_copyTextureSupported)
+            
+            if (_copyTextureSupported)  // 图形 API 是否支持复制功能
             {
                 _commandBuffer.CopyTexture(_depthAttachmentId, _depthTextureId);
             }
-            else
+            else // 不支持的话就通过着色器在相机的帧缓冲区中绘制
             {
                 Draw(_depthAttachmentId, _depthTextureId, true);
                 _commandBuffer.SetRenderTarget(
