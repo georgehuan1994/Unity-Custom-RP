@@ -44,6 +44,9 @@ public partial class CameraRenderer
     private static CameraSettings _defaultCameraSettings = new CameraSettings();
     
     private Material _material;
+    private Texture2D _missingTexture;
+
+    private static bool _copyTextureSupported = SystemInfo.copyTextureSupport > CopyTextureSupport.None;
 
     /// <summary>
     /// CameraRenderer 构造函数
@@ -52,15 +55,23 @@ public partial class CameraRenderer
     public CameraRenderer(Shader shader)
     {
         _material = CoreUtils.CreateEngineMaterial(shader);
+        _missingTexture = new Texture2D(1, 1)
+        {
+            hideFlags = HideFlags.HideAndDontSave,
+            name = "Missing"
+        };
+        _missingTexture.SetPixel(0, 0, Color.white * 0.5f);
+        _missingTexture.Apply(true, true);
     }
 
     public void Dispose()
     {
         CoreUtils.Destroy(_material);
+        CoreUtils.Destroy(_missingTexture);
     }
 
     public void Render(
-        ScriptableRenderContext context, Camera camera, bool allowHDR,
+        ScriptableRenderContext context, Camera camera, CameraBufferSettings cameraBufferSettings,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
         ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
     {
@@ -70,7 +81,16 @@ public partial class CameraRenderer
         var crpCamera = _camera.GetComponent<CustomRenderPipelineCamera>();
         CameraSettings cameraSettings = crpCamera ? crpCamera.Settings : _defaultCameraSettings;
 
-        _useDepthTexture = true;
+        // _useDepthTexture = true;
+
+        if (camera.cameraType == CameraType.Reflection)
+        {
+            _useDepthTexture = cameraBufferSettings.copyDepthReflections;
+        }
+        else
+        {
+            _useDepthTexture = cameraBufferSettings.copyDepth && cameraSettings.copyDepth;
+        }
 
         if (cameraSettings.overridePostFX)
         {
@@ -83,7 +103,7 @@ public partial class CameraRenderer
         if (!Cull(shadowSettings.maxDistance)) 
             return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
 
-        _useHDR = allowHDR && camera.allowHDR;
+        _useHDR = cameraBufferSettings.allowHDR && camera.allowHDR;
         
         _commandBuffer.BeginSample(SampleName);
         ExecuteBuffer();
@@ -192,6 +212,7 @@ public partial class CameraRenderer
             flags == CameraClearFlags.Color,
             flags == CameraClearFlags.Color ? _camera.backgroundColor.linear : Color.clear); // _cb.ClearRenderTarget(true, true, Color.clear);
         _commandBuffer.BeginSample(SampleName);
+        _commandBuffer.SetGlobalTexture(_depthTextureId, _missingTexture);
         ExecuteBuffer();
     }
 
@@ -257,19 +278,29 @@ public partial class CameraRenderer
         {
             _commandBuffer.GetTemporaryRT(_depthTextureId, _camera.pixelWidth, _camera.pixelHeight, 32,
                 FilterMode.Point, RenderTextureFormat.Depth);
-            _commandBuffer.CopyTexture(_depthAttachmentId, _depthTextureId);
+            if (_copyTextureSupported)
+            {
+                _commandBuffer.CopyTexture(_depthAttachmentId, _depthTextureId);
+            }
+            else
+            {
+                Draw(_depthAttachmentId, _depthTextureId, true);
+                _commandBuffer.SetRenderTarget(
+                    _colorAttachmentId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
+                    _depthAttachmentId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+            }
             ExecuteBuffer();
         }
     }
     
-    private void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to)
+    private void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to, bool isDepth = false)
     {
         // 从标识符为 from 的 RenderTarget 中获取纹理，复制到标识符为 _SourceTexture 的纹理
         _commandBuffer.SetGlobalTexture(_sourceTextureId, from);
         // 将标识符为 to 的 RenderTarget 作为绘制目标
         _commandBuffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
         // 使用相机材质在 RenderTarget 上绘制一个很大的三角形
-        _commandBuffer.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Triangles, 3);
+        _commandBuffer.DrawProcedural(Matrix4x4.identity, _material,  isDepth ? 1 : 0, MeshTopology.Triangles, 3);
     }
 
     /// <summary>

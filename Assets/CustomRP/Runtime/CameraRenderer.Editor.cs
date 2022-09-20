@@ -47,6 +47,11 @@ public partial class CameraRenderer // Editor Only
     {
         if (Handles.ShouldRenderGizmos())
         {
+            if (_useIntermediateBuffer)
+            {
+                Draw(_depthAttachmentId, BuiltinRenderTextureType.CameraTarget, true);
+                ExecuteBuffer();
+            }
             _context.DrawGizmos(_camera, GizmoSubset.PreImageEffects);  // 用于指定应在后处理之前渲染的辅助图标
             
         }

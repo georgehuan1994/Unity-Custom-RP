@@ -15,10 +15,10 @@ Shader "Hidden/Custom RP/Camera Renderer"
         {
             Name "Copy"
             
-            HLSLINCLUDE
+            HLSLPROGRAM
             #pragma target 3.5
             #pragma vertex DefaultPassVertex
-            #pragma fragment CopyPassFragment
+            #pragma fragment CopyColorPassFragment
             ENDHLSL  
         }
     	

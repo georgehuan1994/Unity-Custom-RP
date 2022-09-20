@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b84b4f40c540374284ecda30cf6853f, type: 3}
   m_Name: Custom RP
   m_EditorClassIdentifier: 
-  allowHDR: 1
+  cameraBuffer:
+    allowHDR: 1
+    copyDepth: 1
+    copyDepthReflections: 0
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatcher: 0

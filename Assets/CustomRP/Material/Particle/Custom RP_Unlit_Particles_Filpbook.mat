@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Custom RP_Unlit_Particles_Filpbook
   m_Shader: {fileID: 4800000, guid: d68b8757a90307f4597623e2592fa921, type: 3}
-  m_ShaderKeywords: _FLIPBOOK_BLENDING _NEAR_FADE _VERTEX_COLORS
+  m_ShaderKeywords: _FLIPBOOK_BLENDING _NEAR_FADE _SOFT_PARTICLES _VERTEX_COLORS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -31,6 +31,9 @@ Material:
     - _NearFade: 1
     - _NearFadeDistance: 1
     - _NearFadeRange: 2
+    - _SoftParticles: 1
+    - _SoftParticlesDistance: 0.1
+    - _SoftParticlesRange: 1
     - _SrcBlend: 5
     - _VertexColors: 1
     - _ZWrite: 0

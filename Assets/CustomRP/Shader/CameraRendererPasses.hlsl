@@ -35,7 +35,7 @@ Varyings DefaultPassVertex(uint vertexID : SV_VertexID)
     return output;
 }
 
-float4 CopyPassFragment(Varyings input) : SV_TARGET
+float4 CopyColorPassFragment(Varyings input) : SV_TARGET
 {
     return SAMPLE_TEXTURE2D_LOD(_SourceTexture, sampler_linear_clamp, input.screenUV, 0);
 }

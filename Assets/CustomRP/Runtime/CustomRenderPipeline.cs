@@ -5,7 +5,9 @@ public partial class CustomRenderPipeline : RenderPipeline
 {
     private CameraRenderer _renderer;// = new CameraRenderer();
 
-    private bool _allowHDR;
+    private CameraBufferSettings _cameraBufferSettings;
+
+    // private bool _allowHDR;
     private bool _useDynamicBatching;
     private bool _useGPUInstancing;
     private bool _useLightsPerObject;
@@ -20,12 +22,13 @@ public partial class CustomRenderPipeline : RenderPipeline
     /// 构造函数
     /// </summary>
     public CustomRenderPipeline(
-        bool allowHDR,
+        CameraBufferSettings cameraBufferSettings,
         bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher, bool userLightsPerObject,
         ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution,
         Shader cameraRendererShader)
     {
-        _allowHDR = allowHDR;
+        // _allowHDR = allowHDR;
+        _cameraBufferSettings = cameraBufferSettings;
         _useDynamicBatching = useDynamicBatching;
         _useGPUInstancing = useGPUInstancing;
         _shadowSettings = shadowSettings;
@@ -49,7 +52,7 @@ public partial class CustomRenderPipeline : RenderPipeline
     {
         foreach (Camera camera in cameras)
         {
-            _renderer.Render(context, camera, _allowHDR, _useDynamicBatching, _useGPUInstancing, _useLightsPerObject,
+            _renderer.Render(context, camera, _cameraBufferSettings, _useDynamicBatching, _useGPUInstancing, _useLightsPerObject,
                 _shadowSettings, _postFXSettings, _colorLUTResolution);
         }
     }

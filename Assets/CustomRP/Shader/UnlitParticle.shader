@@ -8,6 +8,9 @@ Shader "Custom RP/Particles/Unlit"
     	[Toggle(_NEAR_FADE)] _NearFade ("Near Fade", Float) = 0
     	_NearFadeDistance ("Near Fade Distance", Range(0.0, 10.0)) = 1
     	_NearFadeRange ("Near Fade Range", Range(0.01, 10.0)) = 1
+    	[Toggle(_SOFT_PARTICLES)] _SoftParticles ("Soft Particles", Float) = 0
+    	_SoftParticlesDistance ("Soft Particles Distance", Range(0.0, 10.0)) = 0
+    	_SoftParticlesRange ("Soft Particles Range", Range(0.01, 10.0)) = 1
         _BaseMap("Texture", 2D) = "white" {}
         [Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 0
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -31,6 +34,7 @@ Shader "Custom RP/Particles/Unlit"
             #pragma shader_feature _VERTEX_COLORS	// 是否使用顶点色
             #pragma shader_feature _FLIPBOOK_BLENDING	// 是否使用 Flipbook 混合
             #pragma shader_feature _NEAR_FADE	// 是否使用近平面淡出
+            #pragma shader_feature _SOFT_PARTICLES	// 是否使用软粒子
             #pragma shader_feature _CLIPPING    // 是否使用 Alpha Clip，不能在材质中同时使用透明度混合和 Alpha 剔除，前者不写入深度，后者写入
             #pragma multi_compile_instancing    // GPU Instancing 指令：生成两个变体：一个支持 GPU 实例化，一个不支持
             #pragma vertex UnlitPassVertex      // Unlit Pass 顶点着色器

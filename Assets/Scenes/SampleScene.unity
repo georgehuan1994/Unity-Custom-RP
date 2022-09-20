@@ -2740,6 +2740,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
     overridePostFX: 0
@@ -27268,6 +27269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
     overridePostFX: 0
@@ -27829,7 +27831,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1494748090
 Transform:
   m_ObjectHideFlags: 0
@@ -36832,9 +36834,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
-    overridePostFX: 1
+    overridePostFX: 0
     postFXSettings: {fileID: 0}
     finalBlendMode:
       source: 1
@@ -36890,7 +36893,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
+  m_BackGroundColor: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -39020,6 +39023,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyDepth: 1
     renderingLayerMask: 2147483645
     maskLights: 0
     overridePostFX: 1
@@ -41654,6 +41658,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
     overridePostFX: 0
