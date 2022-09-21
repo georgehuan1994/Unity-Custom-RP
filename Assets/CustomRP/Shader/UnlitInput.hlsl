@@ -15,6 +15,7 @@ UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeRange)
 UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesDistance)
 UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesRange)
 UNITY_DEFINE_INSTANCED_PROP(float, _DistortionStrength)
+UNITY_DEFINE_INSTANCED_PROP(float, _DistortionBlend)
 UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -122,6 +123,22 @@ float GetFresnel(InputConfig c)
 float GetFinalAlpha(float alpha)
 {
     return INPUT_PROP(_ZWrite) ? 1.0 : alpha;
+}
+
+float2 GetDistortion(InputConfig c)
+{
+    float4 rawMap = SAMPLE_TEXTURE2D(_DistortionMap, sampler_BaseMap, c.baseUV);
+    if (c.flipbookBlending)
+    {
+        rawMap = lerp(rawMap, SAMPLE_TEXTURE2D(_DistortionMap, sampler_BaseMap, c.flipbookUVB.xy),
+            c.flipbookUVB.z);
+    }
+    return DecodeNormal(rawMap, INPUT_PROP(_DistortionStrength)).xy;
+}
+
+float GetDistortionBlend(InputConfig c)
+{
+    return INPUT_PROP(_DistortionBlend);
 }
 
 #endif

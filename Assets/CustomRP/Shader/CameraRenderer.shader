@@ -14,6 +14,8 @@ Shader "Hidden/Custom RP/Camera Renderer"
         Pass
         {
             Name "Copy"
+        	
+        	Blend [_CameraSrcBlend] [_CameraDstBlend]
             
             HLSLPROGRAM
             #pragma target 3.5

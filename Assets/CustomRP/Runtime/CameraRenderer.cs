@@ -36,6 +36,9 @@ public partial class CameraRenderer
     private static int _depthTextureId = Shader.PropertyToID("_CameraDepthTexture");
     private static int _sourceTextureId = Shader.PropertyToID("_SourceTexture");
 
+    private static int _srcBlendId = Shader.PropertyToID("_CameraSrcBlend");
+    private static int _dstBlendId = Shader.PropertyToID("_CameraDstBlend");
+
     private bool _useHDR;
     private bool _useColorTexture;         // 是否使用单独的颜色纹理
     private bool _useDepthTexture;         // 是否使用单独的深度纹理
@@ -131,7 +134,8 @@ public partial class CameraRenderer
         }
         else if(_useIntermediateBuffer)
         {
-            Draw(_colorAttachmentId, BuiltinRenderTextureType.CameraTarget);
+            // Draw(_colorAttachmentId, BuiltinRenderTextureType.CameraTarget);
+            DrawFinal(cameraSettings.finalBlendMode);
             ExecuteBuffer();
         }
         
@@ -331,6 +335,23 @@ public partial class CameraRenderer
         _commandBuffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
         // 使用相机材质在 RenderTarget 上绘制一个很大的三角形
         _commandBuffer.DrawProcedural(Matrix4x4.identity, _material,  isDepth ? 1 : 0, MeshTopology.Triangles, 3);
+    }
+    
+    private void DrawFinal(CameraSettings.FinalBlendMode finalBlendMode)
+    {
+        _commandBuffer.SetGlobalFloat(_srcBlendId, (float)finalBlendMode.source);
+        _commandBuffer.SetGlobalFloat(_dstBlendId, (float)finalBlendMode.destination);
+        
+        // _CameraColorAttachment -> _SourceTexture
+        _commandBuffer.SetGlobalTexture(_sourceTextureId, _colorAttachmentId);
+        _commandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, 
+            finalBlendMode.destination == BlendMode.Zero ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
+            RenderBufferStoreAction.Store);
+        _commandBuffer.SetViewport(_camera.pixelRect);
+        _commandBuffer.DrawProcedural(Matrix4x4.identity, _material,  0, MeshTopology.Triangles, 3);
+        
+        _commandBuffer.SetGlobalFloat(_srcBlendId, 1f);
+        _commandBuffer.SetGlobalFloat(_dstBlendId, 0f);
     }
 
     /// <summary>
