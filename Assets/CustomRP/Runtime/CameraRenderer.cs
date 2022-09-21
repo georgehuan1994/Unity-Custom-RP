@@ -32,11 +32,13 @@ public partial class CameraRenderer
     // private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     private static int _colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment");
     private static int _depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment");
+    private static int _colorTextureId = Shader.PropertyToID("_CameraColorTexture");
     private static int _depthTextureId = Shader.PropertyToID("_CameraDepthTexture");
     private static int _sourceTextureId = Shader.PropertyToID("_SourceTexture");
 
     private bool _useHDR;
-    private bool _useDepthTexture;         // 是否需要复制深度纹理
+    private bool _useColorTexture;         // 是否使用单独的颜色纹理
+    private bool _useDepthTexture;         // 是否使用单独的深度纹理
     private bool _useIntermediateBuffer;   // 是否使用中间帧缓冲
 
     private int _colorLUTResolution;
@@ -85,10 +87,12 @@ public partial class CameraRenderer
 
         if (camera.cameraType == CameraType.Reflection)
         {
+            _useColorTexture = cameraBufferSettings.copyColor;
             _useDepthTexture = cameraBufferSettings.copyDepthReflection;
         }
         else
         {
+            _useColorTexture = cameraBufferSettings.copyColor && cameraSettings.copyColor;
             _useDepthTexture = cameraBufferSettings.copyDepth && cameraSettings.copyDepth;
         }
 
@@ -255,9 +259,12 @@ public partial class CameraRenderer
         
         // 绘制天空盒
         _context.DrawSkybox(_camera);
-        
-        // 复制 Attachment 作为临时纹理
-        CopyAttachments();
+
+        if (_useColorTexture || _useDepthTexture)
+        {
+            // 复制 Attachment 作为临时纹理
+            CopyAttachments();
+        }
         
         // 渲染排序设置：透明物体排序，与摄像机的距离从远到近
         sortingSettings.criteria = SortingCriteria.CommonTransparent;
@@ -274,7 +281,23 @@ public partial class CameraRenderer
     /// </summary>
     private void CopyAttachments()
     {
-        // 如果启用了深度贴图复制
+        // 如果启用了颜色纹理复制
+        if (_useColorTexture)
+        {
+            _commandBuffer.GetTemporaryRT(_colorTextureId, _camera.pixelWidth, _camera.pixelHeight, 0,
+                FilterMode.Bilinear, _useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+
+            if (_copyTextureSupported)
+            {
+                _commandBuffer.CopyTexture(_colorAttachmentId, _colorTextureId);
+            }
+            else
+            {
+                Draw(_colorAttachmentId, _colorTextureId);
+            }
+        }
+        
+        // 如果启用了深度纹理复制
         if (_useDepthTexture)
         {
             _commandBuffer.GetTemporaryRT(_depthTextureId, _camera.pixelWidth, _camera.pixelHeight, 32,
@@ -287,12 +310,17 @@ public partial class CameraRenderer
             else // 不支持的话就通过着色器在相机的帧缓冲区中绘制
             {
                 Draw(_depthAttachmentId, _depthTextureId, true);
-                _commandBuffer.SetRenderTarget(
-                    _colorAttachmentId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
-                    _depthAttachmentId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
             }
-            ExecuteBuffer();
         }
+
+        if (!_copyTextureSupported)
+        {
+            _commandBuffer.SetRenderTarget(
+                _colorAttachmentId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store,
+                _depthAttachmentId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+        }
+        
+        ExecuteBuffer();
     }
     
     private void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to, bool isDepth = false)
@@ -334,6 +362,11 @@ public partial class CameraRenderer
             // _commandBuffer.ReleaseTemporaryRT(_frameBufferId);
             _commandBuffer.ReleaseTemporaryRT(_colorAttachmentId);
             _commandBuffer.ReleaseTemporaryRT(_depthAttachmentId);
+
+            if (_useColorTexture)
+            {
+                _commandBuffer.ReleaseTemporaryRT(_colorAttachmentId);
+            }
             
             if (_useDepthTexture)
             {

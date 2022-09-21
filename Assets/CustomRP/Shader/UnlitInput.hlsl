@@ -1,8 +1,9 @@
 #ifndef CUSTOM_UNLIT_INPUT_INCLUDED
 #define CUSTOM_UNLIT_INPUT_INCLUDED
 
-TEXTURE2D(_BaseMap); // 基础纹理
-SAMPLER(sampler_BaseMap); // 采样器，这两个变量不能逐实例提供，应放在全局域中
+TEXTURE2D(_BaseMap);        // 基础纹理
+TEXTURE2D(_DistortionMap);  // 失真纹理
+SAMPLER(sampler_BaseMap);   // 采样器，这两个变量不能逐实例提供，应放在全局域中
 
 // 将属性放入常量缓冲区，并定义名为 "UnityPerMaterial" 的 buffer，优先使用 SRP Batch，然后是 GPU 实例
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
@@ -13,6 +14,7 @@ UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeDistance)
 UNITY_DEFINE_INSTANCED_PROP(float, _NearFadeRange)
 UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesDistance)
 UNITY_DEFINE_INSTANCED_PROP(float, _SoftParticlesRange)
+UNITY_DEFINE_INSTANCED_PROP(float, _DistortionStrength)
 UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)

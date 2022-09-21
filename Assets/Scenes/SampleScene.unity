@@ -2740,6 +2740,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyColor: 1
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
@@ -32074,6 +32075,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyColor: 1
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
@@ -41639,6 +41641,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyColor: 1
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
@@ -43828,6 +43831,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyColor: 1
     copyDepth: 1
     renderingLayerMask: 2147483645
     maskLights: 0
@@ -46463,6 +46467,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings:
+    copyColor: 1
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0

@@ -64,6 +64,7 @@ float4 UnlitPassFragment (Varyings input) : SV_TARGET
     
     InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
     // return float4(config.fragment.depth.xxx / 20.0, 1.0);
+    // return GetBufferColor(config.fragment, 0.05);
     
     #if defined(_VERTEX_COLORS)
         config.color = input.color;
