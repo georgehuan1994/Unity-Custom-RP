@@ -18,6 +18,7 @@ MonoBehaviour:
     copyColorReflection: 0
     copyDepth: 1
     copyDepthReflection: 0
+    renderScale: 0.8
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatcher: 0
@@ -26,7 +27,7 @@ MonoBehaviour:
     maxDistance: 60
     distanceFade: 1
     directional:
-      atlasSize: 4096
+      atlasSize: 8192
       filter: 3
       cascadeCount: 4
       cascadeRatio1: 0.2
@@ -35,8 +36,8 @@ MonoBehaviour:
       cascadeFade: 1
       cascadeBlend: 1
     other:
-      atlasSize: 2048
-      filter: 2
+      atlasSize: 8192
+      filter: 3
   postFXSettings: {fileID: 11400000, guid: 1256c71edcfcd2741a5a5996d5c804b4, type: 2}
   colorLutResolution: 64
   cameraRendererShader: {fileID: 4800000, guid: 06da529d959303c4fb3cab3e9ebf9102, type: 3}

@@ -77,6 +77,7 @@ public partial class CameraRenderer // Editor Only
         {
             // 将 UI 几何形状发射到 Scene 视图以进行渲染
             ScriptableRenderContext.EmitWorldGeometryForSceneView(_camera);
+            _useScaleRendering = false;
         }
     }
 

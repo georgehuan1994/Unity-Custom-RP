@@ -28,7 +28,9 @@ public partial class CameraRenderer
     private Lighting _lighting = new Lighting();
 
     protected PostFXStack _postFXStack = new PostFXStack();
-
+    
+    private static int _bufferSizeId = Shader.PropertyToID("_CameraBufferSize");
+    
     // private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     private static int _colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment");
     private static int _depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment");
@@ -38,11 +40,14 @@ public partial class CameraRenderer
 
     private static int _srcBlendId = Shader.PropertyToID("_CameraSrcBlend");
     private static int _dstBlendId = Shader.PropertyToID("_CameraDstBlend");
-
+    
     private bool _useHDR;
-    private bool _useColorTexture;         // 是否使用单独的颜色纹理
-    private bool _useDepthTexture;         // 是否使用单独的深度纹理
-    private bool _useIntermediateBuffer;   // 是否使用中间帧缓冲
+    private bool _useScaleRendering;        // 是否使用缓冲区缩放
+    private bool _useColorTexture;          // 是否使用单独的颜色纹理
+    private bool _useDepthTexture;          // 是否使用单独的深度纹理
+    private bool _useIntermediateBuffer;    // 是否使用中间帧缓冲
+
+    private Vector2Int _bufferSize;         // 缓冲纹理分辨率
 
     private int _colorLUTResolution;
 
@@ -74,11 +79,11 @@ public partial class CameraRenderer
         CoreUtils.Destroy(_material);
         CoreUtils.Destroy(_missingTexture);
     }
-
-    public void Render(
+    
+        public void Render(
         ScriptableRenderContext context, Camera camera, CameraBufferSettings cameraBufferSettings,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
-        ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
+        ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLutResolution)
     {
         _context = context;
         _camera = camera;
@@ -103,6 +108,9 @@ public partial class CameraRenderer
         {
             postFXSettings = cameraSettings.postFXSettings;
         }
+
+        float renderScale = cameraBufferSettings.renderScale;
+        _useScaleRendering = renderScale < 0.99f || renderScale > 1.01f;
         
         PrepareBuffer();
         PrepareForSceneWindow();
@@ -111,12 +119,24 @@ public partial class CameraRenderer
             return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
 
         _useHDR = cameraBufferSettings.allowHDR && camera.allowHDR;
+        if (_useScaleRendering)
+        {
+            _bufferSize.x = (int)(camera.pixelWidth * renderScale);
+            _bufferSize.y = (int)(camera.pixelHeight * renderScale);
+        }
+        else
+        {
+            _bufferSize.x = camera.pixelWidth;
+            _bufferSize.y = camera.pixelHeight;
+        }
         
         _commandBuffer.BeginSample(SampleName);
+        _commandBuffer.SetGlobalVector(_bufferSizeId, new Vector4(
+            1f / _bufferSize.x, 1f / _bufferSize.y, _bufferSize.x, _bufferSize.y));
         ExecuteBuffer();
-        _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject, 
+        _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject,
             cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);  // 灯光设置
-        _postFXStack.Setup(context, camera, postFXSettings, _useHDR, colorLUTResolution, cameraSettings.finalBlendMode);    // 后处理设置
+        _postFXStack.Setup(context, camera, _bufferSize, postFXSettings, _useHDR, colorLutResolution, cameraSettings.finalBlendMode);    // 后处理设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置
@@ -146,25 +166,8 @@ public partial class CameraRenderer
         Cleanup();
         Submit();
     }
-
-    /// <summary>
-    /// 剔除
-    /// </summary>
-    /// <returns>剔除是否成功</returns>
-    private bool Cull(float maxShadowDistance)
-    {
-        if (_camera.TryGetCullingParameters(out ScriptableCullingParameters p))
-        {
-            // 设置最大阴影距离
-            // 比相机看到的更远的阴影是没有意义的，所以取最大阴影距离和相机远剪辑平面中的最小值
-            p.shadowDistance = Mathf.Min(maxShadowDistance, _camera.farClipPlane);
-            _cullingResults = _context.Cull(ref p);
-            return true;
-        }
-
-        return false;
-    }
-
+        
+    
     /// <summary>
     /// 设置渲染相关配置
     /// </summary>
@@ -177,7 +180,7 @@ public partial class CameraRenderer
         CameraClearFlags flags = _camera.clearFlags;
         
         // 使用中间帧缓冲
-        _useIntermediateBuffer = _useDepthTexture || _postFXStack.IsActive;
+        _useIntermediateBuffer = _useScaleRendering || _useColorTexture || _useDepthTexture || _postFXStack.IsActive;
         
         if (_useIntermediateBuffer)
         {
@@ -186,24 +189,16 @@ public partial class CameraRenderer
             {
                 flags = CameraClearFlags.Color;
             }
-            
-            // 获取 _CameraFrameBuffer 相机的中间帧缓冲 (intermediate frame buffer)
-            // 并将其设置为 RenderTarget，为处于激活状态的 Post FX Stack 提供源纹理
-            // _commandBuffer.GetTemporaryRT(_frameBufferId, _camera.pixelWidth, _camera.pixelHeight, 32,
-            //     FilterMode.Bilinear,
-            //     _useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
-            // _commandBuffer.SetRenderTarget(_frameBufferId, RenderBufferLoadAction.DontCare,
-            //     RenderBufferStoreAction.Store);
-            
+
             // 获取颜色缓冲
             _commandBuffer.GetTemporaryRT(
-                _colorAttachmentId, _camera.pixelWidth, _camera.pixelHeight, 0,
+                _colorAttachmentId, _bufferSize.x, _bufferSize.y, 0,
                 FilterMode.Bilinear,
                 _useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
             
             // 获取深度缓冲
             _commandBuffer.GetTemporaryRT(
-                _depthAttachmentId, _camera.pixelWidth, _camera.pixelHeight, 32,
+                _depthAttachmentId, _bufferSize.x, _bufferSize.y, 32,
                 FilterMode.Point,
                 RenderTextureFormat.Depth);
             
@@ -224,6 +219,24 @@ public partial class CameraRenderer
         ExecuteBuffer();
     }
 
+    /// <summary>
+    /// 剔除
+    /// </summary>
+    /// <returns>剔除是否成功</returns>
+    private bool Cull(float maxShadowDistance)
+    {
+        if (_camera.TryGetCullingParameters(out ScriptableCullingParameters p))
+        {
+            // 设置最大阴影距离
+            // 比相机看到的更远的阴影是没有意义的，所以取最大阴影距离和相机远剪辑平面中的最小值
+            p.shadowDistance = Mathf.Min(maxShadowDistance, _camera.farClipPlane);
+            _cullingResults = _context.Cull(ref p);
+            return true;
+        }
+
+        return false;
+    }
+    
     /// <summary>
     /// 绘制可见几何体
     /// </summary>
@@ -288,7 +301,7 @@ public partial class CameraRenderer
         // 如果启用了颜色纹理复制
         if (_useColorTexture)
         {
-            _commandBuffer.GetTemporaryRT(_colorTextureId, _camera.pixelWidth, _camera.pixelHeight, 0,
+            _commandBuffer.GetTemporaryRT(_colorTextureId, _bufferSize.x, _bufferSize.y, 0,
                 FilterMode.Bilinear, _useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
 
             if (_copyTextureSupported)
@@ -304,7 +317,7 @@ public partial class CameraRenderer
         // 如果启用了深度纹理复制
         if (_useDepthTexture)
         {
-            _commandBuffer.GetTemporaryRT(_depthTextureId, _camera.pixelWidth, _camera.pixelHeight, 32,
+            _commandBuffer.GetTemporaryRT(_depthTextureId, _bufferSize.x, _bufferSize.y, 32,
                 FilterMode.Point, RenderTextureFormat.Depth);
             
             if (_copyTextureSupported)  // 图形 API 是否支持复制功能

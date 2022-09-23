@@ -16,6 +16,8 @@ public partial class PostFXStack
     {
         name = BufferName,
     };
+
+    private Vector2Int _bufferSize;
     
     private enum Pass
     {
@@ -90,11 +92,12 @@ public partial class PostFXStack
         }
     }
 
-    public void Setup(ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR, int colorLUTResolution,
+    public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int bufferSize, PostFXSettings settings, bool useHDR, int colorLUTResolution,
         CameraSettings.FinalBlendMode finalBlendMode)
     {
         _context = context;
         _camera = camera;
+        _bufferSize = bufferSize;
         _settings = camera.cameraType != CameraType.SceneView ? settings : null;
         _useHDR = useHDR;
         _colorLUTResolution = colorLUTResolution;
@@ -162,8 +165,8 @@ public partial class PostFXStack
         _buffer.BeginSample("Gaussian Blur");
         PostFXSettings.BloomSettings bloom = _settings.Bloom;
         
-        int width = _camera.pixelWidth / 2;
-        int height = _camera.pixelHeight / 2;
+        int width = _bufferSize.x / 2;
+        int height = _bufferSize.y / 2;
         
         RenderTextureFormat format = RenderTextureFormat.Default;
         
@@ -213,9 +216,19 @@ public partial class PostFXStack
     private bool DoBloom(int sourceId)
     {
         PostFXSettings.BloomSettings bloom = _settings.Bloom;
+
+        int width, height;
         
-        int width = _camera.pixelWidth / 2;
-        int height = _camera.pixelHeight / 2;
+        if (bloom.ignoreRenderScale)
+        {
+            width = _camera.pixelWidth / 2;
+            height = _camera.pixelHeight / 2;
+        }
+        else
+        {
+            width = _bufferSize.x / 2;
+            height = _bufferSize.y / 2;
+        }
 
         int resScale = bloom.halfRes ? 2 : 1;
 
@@ -317,7 +330,7 @@ public partial class PostFXStack
         
         _buffer.SetGlobalFloat(_bloomIntensityId, finalIntensity);
         _buffer.SetGlobalTexture(_fxSource2Id, sourceId);
-        _buffer.GetTemporaryRT(_bloomResultId, _camera.pixelWidth, _camera.pixelHeight, 0, FilterMode.Bilinear, format);
+        _buffer.GetTemporaryRT(_bloomResultId, _bufferSize.x, _bufferSize.y, 0, FilterMode.Bilinear, format);
         
         Draw(fromId, _bloomResultId, combinePass);
         _buffer.ReleaseTemporaryRT(fromId);
