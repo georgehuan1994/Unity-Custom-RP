@@ -21,6 +21,8 @@ public partial class PostFXStack
     
     private enum Pass
     {
+        FinalRescale,
+        Final,
         ColorGradingFinal,
         ColorGradingNone,
         ColorGradingACES,
@@ -58,6 +60,8 @@ public partial class PostFXStack
     private int _colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT");
     private int _ColorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters");
     private int _colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC");
+    private int _copyBicubicId = Shader.PropertyToID("_CopyBicubic");
+    private int _finalResultId = Shader.PropertyToID("_FinalResult");
     private int _finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend");
     private int _finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
     
@@ -75,6 +79,8 @@ public partial class PostFXStack
     private int _colorLUTResolution;
 
     private CameraSettings.FinalBlendMode _finalBlendMode;
+
+    private CameraBufferSettings.BicubicRescalingMode _bicubicRescaling;
     
     public PostFXStack()
     {
@@ -93,7 +99,7 @@ public partial class PostFXStack
     }
 
     public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int bufferSize, PostFXSettings settings, bool useHDR, int colorLUTResolution,
-        CameraSettings.FinalBlendMode finalBlendMode)
+        CameraSettings.FinalBlendMode finalBlendMode, CameraBufferSettings.BicubicRescalingMode bicubicRescaling)
     {
         _context = context;
         _camera = camera;
@@ -102,6 +108,7 @@ public partial class PostFXStack
         _useHDR = useHDR;
         _colorLUTResolution = colorLUTResolution;
         _finalBlendMode = finalBlendMode;
+        _bicubicRescaling = bicubicRescaling;
         
 #if UNITY_EDITOR
         ApplySceneViewState();
@@ -141,7 +148,7 @@ public partial class PostFXStack
     }
     
     
-    private void DrawFinal(RenderTargetIdentifier from)
+    private void DrawFinal(RenderTargetIdentifier from, Pass pass)
     {
         // 传递相机的混合模式
         _buffer.SetGlobalFloat(_finalSrcBlendId, (float)_finalBlendMode.source);
@@ -157,7 +164,7 @@ public partial class PostFXStack
         // 校正视口参数
         _buffer.SetViewport(_camera.pixelRect);
         // 使用后处理材质在 RenderTarget 上绘制三角形
-        _buffer.DrawProcedural(Matrix4x4.identity, _settings.Material, (int)Pass.ColorGradingFinal, MeshTopology.Triangles, 3);
+        _buffer.DrawProcedural(Matrix4x4.identity, _settings.Material, (int)pass, MeshTopology.Triangles, 3);
     }
 
     private void GaussianBlurring(int sourceId)
@@ -399,12 +406,6 @@ public partial class PostFXStack
         int lutHeight = _colorLUTResolution;
         int lutWidth = lutHeight * lutHeight;
         _buffer.GetTemporaryRT(_colorGradingLUTId, lutWidth, lutHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-        
-        // ToneMappingSettings.Mode mode = _settings.ToneMapping.mode;
-        // // Pass pass = mode < 0 ? Pass.Copy : Pass.ToneMappingACES + (int)mode;
-        // Pass pass = Pass.ColorGradingNone + (int)mode;
-        // Draw(sourceId, BuiltinRenderTextureType.CameraTarget, pass);
-        
         _buffer.SetGlobalVector(_ColorGradingLUTParametersId, new Vector4(
             lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1)));
         
@@ -412,10 +413,29 @@ public partial class PostFXStack
         Pass pass = Pass.ColorGradingNone + (int)mode;
         _buffer.SetGlobalFloat(_colorGradingLUTInLogId, _useHDR && pass != Pass.ColorGradingNone ? 1f : 0f);
         Draw(sourceId, _colorGradingLUTId, pass);
-        _buffer.SetGlobalVector(_ColorGradingLUTParametersId, new Vector4(
-            1f / lutWidth, 1f / lutHeight, lutHeight -1));
-        // Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.ColorGradingFinal);
-        DrawFinal(sourceId);
+        _buffer.SetGlobalVector(_ColorGradingLUTParametersId, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1));
+        if (_bufferSize.x == _camera.pixelWidth)
+        {
+            DrawFinal(sourceId, Pass.Final);
+        }
+        else
+        {
+            _buffer.SetGlobalFloat(_finalSrcBlendId, 1f);
+            _buffer.SetGlobalFloat(_finalDstBlendId, 0f);
+            
+            // 储存 LDR 颜色的临时纹理
+            _buffer.GetTemporaryRT(_finalResultId, _bufferSize.x, _bufferSize.y, 0,
+            FilterMode.Bilinear, RenderTextureFormat.Default);
+            
+            Draw(sourceId, _finalResultId, Pass.Final);
+            bool bicubicSampling = _bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpAndDown ||
+                                   _bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpOnly &&
+                                   _bufferSize.x < _camera.pixelWidth;
+            _buffer.SetGlobalFloat(_copyBicubicId, bicubicSampling ? 1f : 0f);
+            DrawFinal(_finalResultId, Pass.FinalRescale);
+            
+            _buffer.ReleaseTemporaryRT(_finalResultId);
+        }
         _buffer.ReleaseTemporaryRT(_colorGradingLUTId);
     }
 }

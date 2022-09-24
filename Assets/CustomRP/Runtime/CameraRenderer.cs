@@ -31,6 +31,11 @@ public partial class CameraRenderer
     
     private static int _bufferSizeId = Shader.PropertyToID("_CameraBufferSize");
     
+    private Vector2Int _bufferSize;         // 缓冲纹理分辨率
+
+    public const float RenderScaleMin = 0.1F;
+    public const float RenderScaleMax = 2F;
+    
     // private static int _frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
     private static int _colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment");
     private static int _depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment");
@@ -46,9 +51,7 @@ public partial class CameraRenderer
     private bool _useColorTexture;          // 是否使用单独的颜色纹理
     private bool _useDepthTexture;          // 是否使用单独的深度纹理
     private bool _useIntermediateBuffer;    // 是否使用中间帧缓冲
-
-    private Vector2Int _bufferSize;         // 缓冲纹理分辨率
-
+    
     private int _colorLUTResolution;
 
     private static CameraSettings _defaultCameraSettings = new CameraSettings();
@@ -80,7 +83,7 @@ public partial class CameraRenderer
         CoreUtils.Destroy(_missingTexture);
     }
     
-        public void Render(
+    public void Render(
         ScriptableRenderContext context, Camera camera, CameraBufferSettings cameraBufferSettings,
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
         ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLutResolution)
@@ -90,9 +93,7 @@ public partial class CameraRenderer
 
         var crpCamera = _camera.GetComponent<CustomRenderPipelineCamera>();
         CameraSettings cameraSettings = crpCamera ? crpCamera.Settings : _defaultCameraSettings;
-
-        // _useDepthTexture = true;
-
+        
         if (camera.cameraType == CameraType.Reflection)
         {
             _useColorTexture = cameraBufferSettings.copyColor;
@@ -109,7 +110,7 @@ public partial class CameraRenderer
             postFXSettings = cameraSettings.postFXSettings;
         }
 
-        float renderScale = cameraBufferSettings.renderScale;
+        float renderScale = cameraSettings.GetRenderScale(cameraBufferSettings.renderScale);
         _useScaleRendering = renderScale < 0.99f || renderScale > 1.01f;
         
         PrepareBuffer();
@@ -121,6 +122,7 @@ public partial class CameraRenderer
         _useHDR = cameraBufferSettings.allowHDR && camera.allowHDR;
         if (_useScaleRendering)
         {
+            renderScale = Mathf.Clamp(renderScale, RenderScaleMin, RenderScaleMax);
             _bufferSize.x = (int)(camera.pixelWidth * renderScale);
             _bufferSize.y = (int)(camera.pixelHeight * renderScale);
         }
@@ -136,7 +138,8 @@ public partial class CameraRenderer
         ExecuteBuffer();
         _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject,
             cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);  // 灯光设置
-        _postFXStack.Setup(context, camera, _bufferSize, postFXSettings, _useHDR, colorLutResolution, cameraSettings.finalBlendMode);    // 后处理设置
+        _postFXStack.Setup(context, camera, _bufferSize, postFXSettings, _useHDR, 
+            colorLutResolution, cameraSettings.finalBlendMode, cameraBufferSettings.bicubicRescalingMode);    // 后处理设置
         _commandBuffer.EndSample(SampleName);
         
         Setup();    // 相机设置
@@ -149,12 +152,10 @@ public partial class CameraRenderer
 #endif
         if (_postFXStack.IsActive)
         {
-            // _postFXStack.Render(_frameBufferId);
             _postFXStack.Render(_colorAttachmentId);
         }
         else if(_useIntermediateBuffer)
         {
-            // Draw(_colorAttachmentId, BuiltinRenderTextureType.CameraTarget);
             DrawFinal(cameraSettings.finalBlendMode);
             ExecuteBuffer();
         }

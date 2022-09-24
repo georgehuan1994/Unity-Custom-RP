@@ -34,6 +34,8 @@ bool _ColorGradingLUTInLogC;
 
 TEXTURE2D(_ColorGradingLUT);
 
+bool _CopyBicubic;
+
 float4 GetSourceTexelSize()
 {
     return _PostFXSource_TexelSize;
@@ -358,7 +360,7 @@ float4 ColorGradeNeutralPassFragment(Varyings input) : SV_TARGET
 
 float4 ColorGradeACESPassFragment(Varyings input) : SV_TARGET
 {
-    float3 color = GetColorGradeLUT(input.screenUV);
+    float3 color = GetColorGradeLUT(input.screenUV, true);
     color.rgb = AcesTonemap(color.rgb);
     return float4(color, 1.0);
 }
@@ -377,6 +379,16 @@ float4 FinalPassFragment(Varyings input) : SV_TARGET
     return color;
 }
 
-
+float4 FinalPassFragmentRescale(Varyings input) : SV_TARGET
+{
+    if (_CopyBicubic)
+    {
+        return GetSourceBicubic(input.screenUV);
+    }
+    else
+    {
+        return GetSource(input.screenUV);
+    }
+}
 
 #endif
