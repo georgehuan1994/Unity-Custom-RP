@@ -2751,6 +2751,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!1 &122063912
 GameObject:
   m_ObjectHideFlags: 0
@@ -9066,13 +9068,15 @@ MonoBehaviour:
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
-    renderScaleMode: 0
+    renderScaleMode: 2
     renderScale: 1
     overridePostFX: 0
     postFXSettings: {fileID: 0}
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!114 &528508317
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9299,6 +9303,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!1 &532079985
 GameObject:
   m_ObjectHideFlags: 0
@@ -32492,6 +32498,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!114 &1447467672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41434,13 +41442,15 @@ MonoBehaviour:
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
-    renderScaleMode: 0
+    renderScaleMode: 2
     renderScale: 1
     overridePostFX: 0
     postFXSettings: {fileID: 0}
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!114 &1698605312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42195,13 +42205,15 @@ MonoBehaviour:
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
-    renderScaleMode: 0
+    renderScaleMode: 2
     renderScale: 1
     overridePostFX: 0
     postFXSettings: {fileID: 0}
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!114 &1730756050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42344,6 +42356,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 1
+    keepAlpha: 0
 --- !u!114 &1745749390
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44536,6 +44550,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 0
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!1 &1844825874
 GameObject:
   m_ObjectHideFlags: 0
@@ -47174,6 +47190,8 @@ MonoBehaviour:
     finalBlendMode:
       source: 1
       destination: 10
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!1 &2000387231
 GameObject:
   m_ObjectHideFlags: 0

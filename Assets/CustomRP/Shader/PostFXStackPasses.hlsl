@@ -6,8 +6,6 @@
 
 TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
-// SAMPLER(sampler_linear_clamp);
-// SAMPLER(sampler_point_clamp);
 
 float4 _PostFXSource_TexelSize;
 
@@ -372,10 +370,18 @@ float3 ApplyColorGradingLUT(float3 color)
         _ColorGradingLUTParameters.xyz);
 }
 
-float4 FinalPassFragment(Varyings input) : SV_TARGET
+float4 ApplyColorGradingPassFragment(Varyings input) : SV_TARGET
 {
     float4 color = GetSource(input.screenUV);
     color.rgb = ApplyColorGradingLUT(color.rgb);
+    return color;
+}
+
+float4 ApplyColorGradingWithLumaPassFragment(Varyings input) : SV_TARGET
+{
+    float4 color = GetSource(input.screenUV);
+    color.rgb = ApplyColorGradingLUT(color.rgb);
+    color.a = sqrt(Luminance(color.rgb));
     return color;
 }
 

@@ -19,7 +19,13 @@ MonoBehaviour:
     copyDepth: 1
     copyDepthReflection: 0
     renderScale: 1
-    bicubicRescalingMode: 1
+    bicubicRescalingMode: 0
+    fxaa:
+      enabled: 1
+      fixedThreshold: 0.0833
+      relativeThreshold: 0.063
+      subpixelBlending: 1
+      quality: 2
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatcher: 0

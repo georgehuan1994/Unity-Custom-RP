@@ -21,9 +21,11 @@ public partial class PostFXStack
     
     private enum Pass
     {
+        FXAA,
+        FXAAAlphaContainsLuma,
         FinalRescale,
-        Final,
-        ColorGradingFinal,
+        ApplyColorGrading,
+        ApplyColorGradingWithLuma,
         ColorGradingNone,
         ColorGradingACES,
         ColorGradingNeutral,
@@ -60,8 +62,10 @@ public partial class PostFXStack
     private int _colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT");
     private int _ColorGradingLUTParametersId = Shader.PropertyToID("_ColorGradingLUTParameters");
     private int _colorGradingLUTInLogId = Shader.PropertyToID("_ColorGradingLUTInLogC");
+    private int _colorGradingResultId = Shader.PropertyToID("_ColorGradingResult");
     private int _copyBicubicId = Shader.PropertyToID("_CopyBicubic");
     private int _finalResultId = Shader.PropertyToID("_FinalResult");
+    private int _fxaaConfigId = Shader.PropertyToID("_FXAAConfig");
     private int _finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend");
     private int _finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
     
@@ -81,25 +85,36 @@ public partial class PostFXStack
     private CameraSettings.FinalBlendMode _finalBlendMode;
 
     private CameraBufferSettings.BicubicRescalingMode _bicubicRescaling;
+    private CameraBufferSettings.FXAA _fxaa;
+
+    // false = 在 ColorGrading 结果的 Alpha 通道存储 Gamma 2.0 亮度 
+    private bool _keepAlpha;
+
+    private const string _fxaaQualityLowKeyword = "FXAA_QUALITY_LOW";
+    private const string _fxaaQualityMediumKeyword = "FXAA_QUALITY_MEDIUM";
     
     public PostFXStack()
     {
         // 在构造 PostFXStack 时创建辉光采样纹理标识符
         _bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
         
-        // for (int i = 0; i < MaxBloomPyramidLevels; i++)
-        // {
-        //     Shader.PropertyToID("_BloomPyramid" + i);
-        // }
-        
         for (int i = 0; i < MaxBloomPyramidLevels * 2; i++)
         {
             Shader.PropertyToID("_BloomPyramid" + i);
         }
     }
-
-    public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int bufferSize, PostFXSettings settings, bool useHDR, int colorLUTResolution,
-        CameraSettings.FinalBlendMode finalBlendMode, CameraBufferSettings.BicubicRescalingMode bicubicRescaling)
+    
+    public void Setup(
+        ScriptableRenderContext context, 
+        Camera camera, 
+        Vector2Int bufferSize, 
+        PostFXSettings settings, 
+        bool useHDR, 
+        int colorLUTResolution,
+        CameraSettings.FinalBlendMode finalBlendMode, 
+        bool keepAlpha,
+        CameraBufferSettings.BicubicRescalingMode bicubicRescaling,
+        CameraBufferSettings.FXAA fxaa)
     {
         _context = context;
         _camera = camera;
@@ -109,6 +124,8 @@ public partial class PostFXStack
         _colorLUTResolution = colorLUTResolution;
         _finalBlendMode = finalBlendMode;
         _bicubicRescaling = bicubicRescaling;
+        _fxaa = fxaa;
+        _keepAlpha = keepAlpha;
         
 #if UNITY_EDITOR
         ApplySceneViewState();
@@ -125,12 +142,12 @@ public partial class PostFXStack
         
         if (DoBloom(sourceId))
         {
-            DoColorGradingAndToneMapping(_bloomResultId);
+            DoFinal(_bloomResultId);
             _buffer.ReleaseTemporaryRT(_bloomResultId);
         }
         else
         {
-            DoColorGradingAndToneMapping(sourceId);
+            DoFinal(sourceId);
         }
         
         _context.ExecuteCommandBuffer(_buffer);
@@ -395,7 +412,26 @@ public partial class PostFXStack
             smh.shadowsStart, smh.shadowsEnd, smh.highlightStart, smh.highLightsEnd));
     }
 
-    private void DoColorGradingAndToneMapping(int sourceId)
+    private void ConfigureFXAA()
+    {
+        if (_fxaa.quality == CameraBufferSettings.FXAA.Quality.Low)
+        {
+            _buffer.EnableShaderKeyword(_fxaaQualityLowKeyword);
+            _buffer.DisableShaderKeyword(_fxaaQualityMediumKeyword);
+        }
+        else if (_fxaa.quality == CameraBufferSettings.FXAA.Quality.Medium)
+        {
+            _buffer.DisableShaderKeyword(_fxaaQualityLowKeyword);
+            _buffer.EnableShaderKeyword(_fxaaQualityMediumKeyword);
+        }
+        else
+        {
+            _buffer.DisableShaderKeyword(_fxaaQualityLowKeyword);
+            _buffer.DisableShaderKeyword(_fxaaQualityMediumKeyword);
+        }
+    }
+
+    private void DoFinal(int sourceId)
     {
         ConfigureColorAdjustments();
         ConfigureWhiteBalance();
@@ -414,26 +450,61 @@ public partial class PostFXStack
         _buffer.SetGlobalFloat(_colorGradingLUTInLogId, _useHDR && pass != Pass.ColorGradingNone ? 1f : 0f);
         Draw(sourceId, _colorGradingLUTId, pass);
         _buffer.SetGlobalVector(_ColorGradingLUTParametersId, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1));
+
+        // 保持混合模式为 One Zero
+        _buffer.SetGlobalFloat(_finalSrcBlendId, 1f);
+        _buffer.SetGlobalFloat(_finalDstBlendId, 0f);
+        
+        // 若启用 FXAA 则将 ColorGrading 的结果储存起来
+        if (_fxaa.enabled)
+        {
+            ConfigureFXAA();
+            _buffer.SetGlobalVector(_fxaaConfigId, new Vector4(
+                _fxaa.fixedThreshold, 
+                _fxaa.relativeThreshold,
+                _fxaa.subpixelBlending));
+            _buffer.GetTemporaryRT(_colorGradingResultId, _bufferSize.x, _bufferSize.y, 0,
+                FilterMode.Bilinear, RenderTextureFormat.Default);
+            Draw(sourceId, _colorGradingResultId,
+                _keepAlpha ? Pass.ApplyColorGrading : Pass.ApplyColorGradingWithLuma);
+        }
+        
         if (_bufferSize.x == _camera.pixelWidth)
         {
-            DrawFinal(sourceId, Pass.Final);
+            if (_fxaa.enabled)
+            {
+                DrawFinal(_colorGradingResultId, 
+                    _keepAlpha ? Pass.FXAA : Pass.FXAAAlphaContainsLuma);
+                _buffer.ReleaseTemporaryRT(_colorGradingResultId);
+            }
+            else
+            {
+                DrawFinal(sourceId, Pass.ApplyColorGrading);
+            }
         }
         else
         {
-            _buffer.SetGlobalFloat(_finalSrcBlendId, 1f);
-            _buffer.SetGlobalFloat(_finalDstBlendId, 0f);
-            
-            // 储存 LDR 颜色的临时纹理
+            // 储存 LDR 颜色的临时纹理作为中转，直接对 HDR 纹理缩放会出现颜色混叠问题
             _buffer.GetTemporaryRT(_finalResultId, _bufferSize.x, _bufferSize.y, 0,
             FilterMode.Bilinear, RenderTextureFormat.Default);
-            
-            Draw(sourceId, _finalResultId, Pass.Final);
+
+            if (_fxaa.enabled)
+            {
+                Draw(_colorGradingResultId, _finalResultId,
+                    _keepAlpha ? Pass.FXAA : Pass.FXAAAlphaContainsLuma);
+                _buffer.ReleaseTemporaryRT(_colorGradingResultId);
+            }
+            else
+            {
+                Draw(sourceId, _finalResultId, Pass.ApplyColorGrading);
+            }
+
             bool bicubicSampling = _bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpAndDown ||
                                    _bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpOnly &&
                                    _bufferSize.x < _camera.pixelWidth;
             _buffer.SetGlobalFloat(_copyBicubicId, bicubicSampling ? 1f : 0f);
-            DrawFinal(_finalResultId, Pass.FinalRescale);
             
+            DrawFinal(_finalResultId, Pass.FinalRescale);
             _buffer.ReleaseTemporaryRT(_finalResultId);
         }
         _buffer.ReleaseTemporaryRT(_colorGradingLUTId);

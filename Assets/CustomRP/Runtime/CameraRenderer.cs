@@ -136,13 +136,21 @@ public partial class CameraRenderer
         _commandBuffer.SetGlobalVector(_bufferSizeId, new Vector4(
             1f / _bufferSize.x, 1f / _bufferSize.y, _bufferSize.x, _bufferSize.y));
         ExecuteBuffer();
+        
+        // 灯光设置
         _lighting.Setup(context, _cullingResults, shadowSettings, useLightsPerObject,
-            cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);  // 灯光设置
+            cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
+
+        // 后处理设置
+        cameraBufferSettings.fxaa.enabled &= cameraSettings.allowFXAA;
         _postFXStack.Setup(context, camera, _bufferSize, postFXSettings, _useHDR, 
-            colorLutResolution, cameraSettings.finalBlendMode, cameraBufferSettings.bicubicRescalingMode);    // 后处理设置
+            colorLutResolution, 
+            cameraSettings.finalBlendMode, cameraSettings.keepAlpha, 
+            cameraBufferSettings.bicubicRescalingMode, cameraBufferSettings.fxaa);
         _commandBuffer.EndSample(SampleName);
         
-        Setup();    // 相机设置
+        // 相机设置
+        this.Setup();
         
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject, cameraSettings.renderingLayerMask);
         
