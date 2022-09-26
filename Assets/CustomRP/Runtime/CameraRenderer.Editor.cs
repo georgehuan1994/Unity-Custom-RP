@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -91,3 +92,4 @@ public partial class CameraRenderer // Editor Only
         Profiler.EndSample();
     }
 }
+#endif

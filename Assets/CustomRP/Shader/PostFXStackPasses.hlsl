@@ -370,6 +370,7 @@ float3 ApplyColorGradingLUT(float3 color)
         _ColorGradingLUTParameters.xyz);
 }
 
+// keepAlpha = true
 float4 ApplyColorGradingPassFragment(Varyings input) : SV_TARGET
 {
     float4 color = GetSource(input.screenUV);
@@ -377,6 +378,7 @@ float4 ApplyColorGradingPassFragment(Varyings input) : SV_TARGET
     return color;
 }
 
+// keepAlpha = false
 float4 ApplyColorGradingWithLumaPassFragment(Varyings input) : SV_TARGET
 {
     float4 color = GetSource(input.screenUV);

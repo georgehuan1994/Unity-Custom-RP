@@ -9,7 +9,8 @@ float4 _FXAAConfig;
 float GetLuma(float2 uv, float uOffset = 0.0, float vOffset = 0.0)
 {
     uv += float2(uOffset, vOffset) * GetSourceTexelSize().xy;
-    
+
+    // keepAlpha = false
     #if defined(FXAA_ALPHA_CONTAINS_LUMA)
         return GetSource(uv).a;                 // ColorGrading 的透明通道，保存了 Gamma 2.0 亮度
     #else
@@ -23,8 +24,8 @@ struct LumaNeighborhood
 {
     float m, n, e, s, w;    // middle, north, east, south, west
     float ne, se, sw, nw;   // north-east, south-east, south-west, north-west
-    float hightest, lowest; // 局部最高亮度，局部最低亮度
-    float range;            // 亮度范围
+    float highest, lowest; // 局部最高亮度，局部最低亮度
+    float range;            // 局部对比度
 };
 
 LumaNeighborhood GetLumaNeighborhood(float2 uv)
@@ -39,15 +40,16 @@ LumaNeighborhood GetLumaNeighborhood(float2 uv)
     luma.se = GetLuma(uv, 1.0, -1.0);
     luma.sw = GetLuma(uv, -1.0, -1.0);
     luma.nw = GetLuma(uv, -1.0, 1.0);
-    luma.hightest = max(max(max(max(luma.m, luma.n), luma.e), luma.s), luma.w);
+    luma.highest = max(max(max(max(luma.m, luma.n), luma.e), luma.s), luma.w);
     luma.lowest = min(min(min(min(luma.m, luma.n), luma.e), luma.s), luma.w);
-    luma.range = luma.hightest - luma.lowest;
+    luma.range = luma.highest - luma.lowest;
     return luma;
 }
 
 bool CanSkipFXAA(LumaNeighborhood luma)
 {
-    return luma.range < _FXAAConfig.y * luma.hightest;
+    return luma.range < max(_FXAAConfig.x, _FXAAConfig.y * luma.highest);
+    return luma.range < _FXAAConfig.y * luma.highest;
     return luma.range < _FXAAConfig.x;
 }
 
@@ -298,7 +300,7 @@ float4 FXAAPassFragment(Varyings input) : SV_TARGET
     return GetSubpixelBlendFactor(luma);
     return luma.range;
     return luma.lowest;
-    return luma.hightest;
+    return luma.highest;
     return luma.m;
     return GetLuma(input.screenUV);
     return GetSource(input.screenUV);

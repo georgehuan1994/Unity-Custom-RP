@@ -113,9 +113,11 @@ public partial class CameraRenderer
         float renderScale = cameraSettings.GetRenderScale(cameraBufferSettings.renderScale);
         _useScaleRendering = renderScale < 0.99f || renderScale > 1.01f;
         
+#if UNITY_EDITOR
         PrepareBuffer();
         PrepareForSceneWindow();
-        
+#endif
+
         if (!Cull(shadowSettings.maxDistance)) 
             return;  // 为什么是先剔除，再配置相机参数？顺序无关，有机会 return 就先 return
 
