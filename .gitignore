@@ -60,3 +60,7 @@ crashlytics-build.properties
 
 
 Assets/Scenes/SampleScene/
+
+Assets/CustomRP/Material/SphereTextures/
+
+Assets/CustomRP/Material/SphereTextures.meta
