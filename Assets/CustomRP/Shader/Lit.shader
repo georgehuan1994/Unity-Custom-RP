@@ -47,6 +47,8 @@ Shader "Custom RP/Lit"
 		#include "LitInput.hlsl"
 		ENDHLSL
         
+    	// Tags { "PreviewType" = "Plane" }
+    	
         Pass
         {
             Tags { "LightMode" = "CustomLit" }  // 自定义光照标签
